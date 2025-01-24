@@ -1,46 +1,20 @@
-// src/accessories/device-accessory-factory.ts
 import { CharacteristicValue, PlatformAccessory, Service, WithUUID } from 'homebridge';
-import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { DeviceFunctionResponse } from '../responses/device-function-response'; // Correct import
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse } from '../responses/device-function-response';  // Import DeviceResponse
+import { DeviceResponse } from '../responses/device-function-response'; // Ensure proper import
 
-/**
- * Factory class to handle device accessories
- */
 export class DeviceAccessoryFactory extends HubspaceAccessory {
   constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
-    super(platform, accessory, [platform.Service.Outlet]);  // Adjust for multiple services as needed
+    super(platform, accessory, [platform.Service.Outlet]);
     this.configureDeviceFunctions();
-    this.removeStaleServices();
+    this.removeStaleServices(); // If needed, make this method protected/public
   }
 
-  /**
-   * Configures the device functions and creates appropriate services.
-   */
-  private configureDeviceFunctions(): void {
-    // Here we handle multiple device functions
-    const outletFunctions = this.getOutletFunctions();
-
-    outletFunctions.forEach((func, index) => {
-      const outletService = this.accessory.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
-      
-      // Configure the power control for each outlet
-      outletService
-        .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(() => this.getOutletPower(func))
-        .onSet((value) => this.setOutletPower(func, value));
-    });
-  }
-
-  /**
-   * Get all the outlet functions from the device.
-   * @returns {DeviceFunctionResponse[]} Array of outlet functions
-   */
+  // Helper to get outlet functions
   private getOutletFunctions(): DeviceFunctionResponse[] {
-    // Filter outlet power functions from the device description
-    const outletFunctions = (this.device as DeviceResponse).description.functions.filter(
-      (func) => func.functionClass === DeviceFunction.OutletPower
+    const outletFunctions = (this.device as unknown as DeviceResponse).description.functions.filter(
+      (func) => func.functionClass === 'OutletPower'
     );
 
     if (!outletFunctions || outletFunctions.length === 0) {
@@ -50,15 +24,26 @@ export class DeviceAccessoryFactory extends HubspaceAccessory {
     return outletFunctions;
   }
 
-  /**
-   * Get the current power state of the outlet.
-   * @param {DeviceFunctionResponse} func - The device function for outlet power
-   * @returns {Promise<CharacteristicValue>} Current power state (boolean)
-   */
-  private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
-    const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[0].key);
+  private configureDeviceFunctions(): void {
+    const outletFunctions = this.getOutletFunctions();
 
-    // Handle potential null or undefined values
+    outletFunctions.forEach((func, index) => {
+      const outletService = this.accessory.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
+
+      outletService
+        .getCharacteristic(this.platform.Characteristic.On)
+        .onGet(() => this.getOutletPower(func))
+        .onSet((value) => this.setOutletPower(func, value));
+    });
+  }
+
+  // Get outlet power state
+  private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
+    const value = await this.deviceService.getValueAsBoolean(
+      this.device.deviceId,
+      func.deviceValues[0].key
+    );
+
     if (value === null || value === undefined) {
       throw new this.platform.api.hap.HapStatusError(
         this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
@@ -68,20 +53,18 @@ export class DeviceAccessoryFactory extends HubspaceAccessory {
     return value!;
   }
 
-  /**
-   * Set the power state of the outlet.
-   * @param {DeviceFunctionResponse} func - The device function for outlet power
-   * @param {CharacteristicValue} value - The new power state
-   */
+  // Set outlet power state
   private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
-    // Set the device value using the appropriate key
     await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
   }
 
-  /**
-   * Remove stale services from the accessory.
-   */
-  private removeStaleServices(): void {
-    // Logic to remove outdated services, if necessary
+  // Helper to remove outdated services
+  protected removeStaleServices(): void {
+    // Implement logic for removing stale services
   }
+}
+
+// Export function if needed
+export function createAccessoryForDevice(device: DeviceResponse) {
+  // Add your implementation for accessory creation
 }
