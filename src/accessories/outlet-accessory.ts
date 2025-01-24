@@ -37,25 +37,26 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
   /**
    * Configures all outlets on the surge protector.
    */
-  private configureOutlets(): void {
-    const outletFunctions = this.device.functions.filter((func) =>
-      func.type === DeviceFunction.OutletPower
+private configureOutlets(): void {
+  const outletFunctions = this.device.description.functions.filter((func) =>
+    func.functionClass === DeviceFunction.OutletPower
+  );
+
+  // Create and configure a service for each outlet
+  outletFunctions.forEach((func, index) => {
+    const outletService = this.addService(
+      this.platform.Service.Outlet,
+      `Outlet ${index + 1}`,
+      `outlet-${index + 1}`
     );
 
-    // Create and configure a service for each outlet
-    outletFunctions.forEach((func, index) => {
-      const outletService = this.addService(
-        func.functionClass === DeviceFunction.OutletPower
-        `Outlet ${index + 1}`,
-        `outlet-${index + 1}`
-      );
+    outletService
+      .getCharacteristic(this.platform.Characteristic.On)
+      .onGet(() => this.getOutletPower(func))
+      .onSet((value) => this.setOutletPower(func, value));
+  });
+}
 
-      outletService
-        .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(() => this.getOutletPower(func))
-        .onSet((value) => this.setOutletPower(func, value));
-    });
-  }
 
   /**
    * Gets the power state for a specific outlet.
