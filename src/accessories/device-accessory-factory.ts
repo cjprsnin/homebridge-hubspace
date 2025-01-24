@@ -6,6 +6,7 @@ import { FanAccessory } from './fan-accessory';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { LightAccessory } from './light-accessory';
 import { OutletAccessory } from './outlet-accessory';
+import { SurgeProtectorAccessory } from './outlet-accessory';
 import { SprinklerAccessory } from './sprinkler-accessory';
 
 import { DeviceFunction } from '../models/device-functions';
