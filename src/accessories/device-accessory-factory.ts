@@ -37,23 +37,20 @@ export class DeviceAccessoryFactory extends HubspaceAccessory {
     });
   }
 
-  // Get outlet power state
   private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
-    if (func.deviceValues && func.deviceValues.length > 0) {
-      const key = func.deviceValues[0].key;
-      const value = await this.deviceService.getValueAsBoolean(
-        this.device.deviceId,
-        key
-      );
+  const value = await this.deviceService.getValueAsBoolean(
+    this.device.deviceId,
+    func.deviceValues[0].key
+  );
 
-      if (value === null || value === undefined) {
-        throw new this.platform.api.hap.HapStatusError(
-          this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
-        );
-      }
+  if (value === null || value === undefined) {
+    throw new this.platform.api.hap.HapStatusError(
+      this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+    );
+  }
 
-      return value!;
-    }
+  return value!;
+}
 
     // Handle case where deviceValues is missing
     throw new Error('deviceValues not found');
