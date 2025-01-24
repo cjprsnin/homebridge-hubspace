@@ -45,7 +45,7 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
     // Create and configure a service for each outlet
     outletFunctions.forEach((func, index) => {
       const outletService = this.addService(
-        this.platform.Service.Outlet,
+        func.functionClass === DeviceFunction.OutletPower
         `Outlet ${index + 1}`,
         `outlet-${index + 1}`
       );
