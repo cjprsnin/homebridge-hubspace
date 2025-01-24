@@ -1,41 +1,53 @@
-import { PlatformAccessory } from 'homebridge';
-import { Device } from '../models/device';
-import { DeviceType } from '../models/device-type';
+import { CharacteristicValue, PlatformAccessory } from 'homebridge';
+import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
-import { FanAccessory } from './fan-accessory';
+import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { LightAccessory } from './light-accessory';
-import { OutletAccessory } from './outlet-accessory';
-import { SurgeProtectorAccessory } from './outlet-accessory';
-import { SprinklerAccessory } from './sprinkler-accessory';
-import { DeviceFunctionValues } from '../models/device-functions';
-import { DeviceFunction } from '../models/device-functions';
+import { DeviceFunctionResponse, DeviceResponse } from '../responses/device-function-response';
 
-// src/responses/device-function-response.ts
-export interface DeviceFunctionResponse {
-  functionClass: string;
-  values: DeviceFunctionValues[];  // Ensure 'values' is defined here
-  functionInstance?: string;       // Add functionInstance if needed
-}
-/**
- * Creates {@link HubspaceAccessory} for a specific {@link DeviceType}
- * @param device Device information
- * @param platform Hubspace platform
- * @param accessory Platform accessory
- * @returns {@link HubspaceAccessory}
- * @throws If device type is not supported
- */
-export function createAccessoryForDevice(device: Device, platform: HubspacePlatform, accessory: PlatformAccessory): HubspaceAccessory{
-    switch(device.type){
-        case DeviceType.Light:
-            return new LightAccessory(platform, accessory);
-        case DeviceType.Fan:
-            return new FanAccessory(platform, accessory);
-        case DeviceType.Outlet:
-            return new OutletAccessory(platform, accessory);
-        case DeviceType.Sprinkler:
-            return new SprinklerAccessory(platform, accessory);
-        default:
-            throw new Error(`Accessory of type '${device.type}' is not supported.`);
+export class OutletAccessory extends HubspaceAccessory {
+  constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
+    super(platform, accessory, [platform.Service.Outlet]);
+
+    this.configurePower();
+    this.removeStaleServices();
+  }
+
+  private configurePower(): void {
+    const outletFunctions = this.device.description.functions.filter(
+      (func: DeviceFunctionResponse) => func.functionClass === DeviceFunction.OutletPower
+    );
+
+    outletFunctions.forEach((func, index) => {
+      const outletService = this.accessory.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
+
+      outletService
+        .getCharacteristic(this.platform.Characteristic.On)
+        .onGet(() => this.getOutletPower(func))
+        .onSet((value) => this.setOutletPower(func, value));
+    });
+  }
+
+  private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
+    const value = await this.deviceService.getValueAsBoolean(
+      this.device.deviceId,
+      func.values[0].deviceValues[0].key
+    );
+
+    if (isNullOrUndefined(value)) {
+      throw new this.platform.api.hap.HapStatusError(
+        this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+      );
     }
+
+    return value!;
+  }
+
+  private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
+    await this.deviceService.setValue(
+      this.device.deviceId,
+      func.values[0].deviceValues[0].key,
+      value
+    );
+  }
 }
