@@ -11,6 +11,12 @@ import { SprinklerAccessory } from './sprinkler-accessory';
 
 import { DeviceFunction } from '../models/device-functions';
 
+// src/responses/device-function-response.ts
+export interface DeviceFunctionResponse {
+  functionClass: string;
+  values: DeviceFunctionValues[];  // Ensure 'values' is defined here
+  functionInstance?: string;       // Add functionInstance if needed
+}
 /**
  * Creates {@link HubspaceAccessory} for a specific {@link DeviceType}
  * @param device Device information
