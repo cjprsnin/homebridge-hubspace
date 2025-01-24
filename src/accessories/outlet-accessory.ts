@@ -4,6 +4,21 @@ import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
 
+export class OutletAccessory extends HubspaceAccessory{
+
+    /**
+     * Crates a new instance of the accessory
+     * @param platform Hubspace platform
+     * @param accessory Platform accessory
+     */
+    constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
+        super(platform, accessory, [platform.Service.Outlet]);
+
+        this.configurePower();
+
+        this.removeStaleServices();
+    }
+
 export class SurgeProtectorAccessory extends HubspaceAccessory {
 
   /**
