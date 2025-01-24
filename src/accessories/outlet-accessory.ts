@@ -3,6 +3,7 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
+import { DeviceResponse } from '../models/device-function-response'; // Import DeviceResponse
 
 export class OutletAccessory extends HubspaceAccessory {
   /**
@@ -71,8 +72,8 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
 
     // Create and configure a service for each outlet
     outletFunctions.forEach((func, index) => {
-      const outletService = this.platform.Service.Outlet;
-      this.services.push(outletService); // Use push to add services to the accessory
+      const outletService = new this.platform.Service.Outlet(this.accessory, `Outlet ${index + 1}`);
+      this.services.push(outletService);
 
       outletService
         .getCharacteristic(this.platform.Characteristic.On)
@@ -85,7 +86,7 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
    * Gets the power state for a specific outlet.
    * @param func Device function definition for the outlet
    */
-  private async getOutletPower(func: DeviceFunction): Promise<CharacteristicValue> {
+  private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
     const value = await this.deviceService.getValueAsBoolean(
       this.device.deviceId,
       func.values[0].deviceValues[0].key
@@ -105,7 +106,7 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
    * @param func Device function definition for the outlet
    * @param value Desired state (on/off)
    */
-  private async setOutletPower(func: DeviceFunction, value: CharacteristicValue): Promise<void> {
+  private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
     await this.deviceService.setValue(
       this.device.deviceId,
       func.values[0].deviceValues[0].key,
