@@ -17,7 +17,7 @@ export class OutletAccessory extends HubspaceAccessory{
         this.configurePower();
 
         this.removeStaleServices();
-    }
+    }},
 
 export class SurgeProtectorAccessory extends HubspaceAccessory {
 
