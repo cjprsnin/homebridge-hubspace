@@ -3,7 +3,7 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse, DeviceFunctionResponse } from '../responses/device-function-response';  // Ensure this is correct
+import { DeviceFunctionResponse, DeviceResponse } from '../responses/device-function-response';
 
 export class OutletAccessory extends HubspaceAccessory {
   /**
