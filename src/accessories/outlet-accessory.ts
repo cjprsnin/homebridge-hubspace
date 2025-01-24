@@ -56,9 +56,9 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
   }
 
   private configureOutlets(): void {
-    const outletFunctions = this.device.description.functions.filter((func) =>
-      func.functionClass === DeviceFunction.OutletPower
-    );
+    const outletFunctions = (this.device as DeviceResponse).description.functions.filter((func) =>
+    func.functionClass === DeviceFunction.OutletPower
+  );
 
     // Create and configure a service for each outlet
     outletFunctions.forEach((func, index) => {
