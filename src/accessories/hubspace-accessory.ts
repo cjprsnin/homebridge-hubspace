@@ -7,84 +7,70 @@ import { DeviceService } from '../services/device.service';
 /**
  * Base class for Hubspace accessories
  */
-export abstract class HubspaceAccessory{
+export abstract class HubspaceAccessory {
+  protected readonly services: Service[] = [];
+  protected readonly log: Logger;
+  protected readonly config: PlatformConfig;
+  protected readonly deviceService: DeviceService;
+  protected readonly device: Device;
 
-    /**
-     * Accessory services
-     */
-    protected readonly services: Service[] = [];
-
-    /**
-     * Application logger
-     */
-    protected readonly log: Logger;
-
-    /**
-     * Application config
-     */
-    protected readonly config: PlatformConfig;
-
-    /**
-     * Device interaction service
-     */
-    protected readonly deviceService: DeviceService;
-
-    /**
-     * Device information
-     */
-    protected readonly device: Device;
-
-    /**
-     * Crates new instance of {@link HubspaceAccessory}
-     * @param platform Hubspace platform
-     * @param accessory Platform accessory
-     * @param service Service type for accessory
-     */
-    constructor(
-        protected readonly platform: HubspacePlatform,
-        protected readonly accessory: PlatformAccessory,
-        services: (Service | WithUUID<typeof Service>)[]
-    ) {
-        for (const service of services) {
-            const initializedService =
-                accessory.getServiceById((service as Service).displayName, (service as Service).subtype!) ||
-                accessory.getService(service as WithUUID<typeof Service>) ||
-                this.accessory.addService(service as Service);
-            this.services.push(initializedService);
-        }
-
-        this.config = platform.config;
-        this.log = platform.log;
-        this.deviceService = platform.deviceService;
-        this.device = accessory.context.device;
-
-        this.accessory.getService(this.platform.Service.AccessoryInformation)!
-            .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
-            .setCharacteristic(this.platform.Characteristic.Model, this.device.model.length > 0 ? this.device.model[0] : 'N/A')
-            .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
-
+  /**
+   * Creates new instance of {@link HubspaceAccessory}
+   * @param platform Hubspace platform
+   * @param accessory Platform accessory
+   * @param services Service type for accessory
+   */
+  constructor(
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
+    services: (Service | WithUUID<typeof Service>)[] // Ensuring proper service types are passed
+  ) {
+    // Ensure correct service initialization, adding services if necessary
+    for (const service of services) {
+      const initializedService =
+        accessory.getServiceById((service as Service).displayName, (service as Service).subtype!) ||
+        accessory.getService(service as WithUUID<typeof Service>) ||
+        this.accessory.addService(service as Service);
+      this.services.push(initializedService);
     }
 
-    /**
-     * Checks whether function is supported by device
-     * @param deviceFunction Function to check
-     * @returns True if function is supported by the device otherwise false
-     */
-    protected supportsFunction(deviceFunction: DeviceFunction): boolean{
-        return this.device.functions.some(fc => fc.functionClass === deviceFunction);
-    }
+    this.config = platform.config;
+    this.log = platform.log;
+    this.deviceService = platform.deviceService;
+    this.device = accessory.context.device;
 
-    protected removeStaleServices(): void{
-        /* slice out the accessory service */
-        const staleServices =
-            this.accessory.services.slice(1).filter(a => !this.services.some(d => d.UUID === a.UUID && a.displayName === d.displayName));
-        for (const staleService of staleServices) {
-            this.accessory.removeService(staleService);
-        }
-    }
+    // Set accessory information
+    this.accessory.getService(this.platform.Service.AccessoryInformation)!
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
+      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.length > 0 ? this.device.model[0] : 'N/A')
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
+  }
 
-    protected configureName(service: Service, name: string): void{
-        service.setCharacteristic(this.platform.Characteristic.Name, name);
-        service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
+  /**
+   * Checks whether function is supported by device
+   * @param deviceFunction Function to check
+   * @returns True if function is supported by the device otherwise false
+   */
+  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
+    return this.device.functions.some(fc => fc.functionClass === deviceFunction);
+  }
+
+  /**
+   * Removes stale services that are not used anymore
+   */
+  protected removeStaleServices(): void {
+    const staleServices =
+      this.accessory.services.slice(1).filter(a => !this.services.some(d => d.UUID === a.UUID && a.displayName === d.displayName));
+    for (const staleService of staleServices) {
+      this.accessory.removeService(staleService);
     }
+  }
+
+  /**
+   * Configures the name for a service
+   */
+  protected configureName(service: Service, name: string): void {
+    service.setCharacteristic(this.platform.Characteristic.Name, name);
+    service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
+  }
 }
