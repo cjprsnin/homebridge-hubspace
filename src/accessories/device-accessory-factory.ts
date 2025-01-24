@@ -39,23 +39,33 @@ export class DeviceAccessoryFactory extends HubspaceAccessory {
 
   // Get outlet power state
   private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
-    const value = await this.deviceService.getValueAsBoolean(
-      this.device.deviceId,
-      func.deviceValues[0].key
-    );
-
-    if (value === null || value === undefined) {
-      throw new this.platform.api.hap.HapStatusError(
-        this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+    if (func.deviceValues && func.deviceValues.length > 0) {
+      const key = func.deviceValues[0].key;
+      const value = await this.deviceService.getValueAsBoolean(
+        this.device.deviceId,
+        key
       );
+
+      if (value === null || value === undefined) {
+        throw new this.platform.api.hap.HapStatusError(
+          this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
+        );
+      }
+
+      return value!;
     }
 
-    return value!;
+    // Handle case where deviceValues is missing
+    throw new Error('deviceValues not found');
   }
 
   // Set outlet power state
   private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
-    await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
+    if (func.deviceValues && func.deviceValues.length > 0) {
+      await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
+    } else {
+      throw new Error('deviceValues not found');
+    }
   }
 
   // Helper to remove outdated services
@@ -65,6 +75,6 @@ export class DeviceAccessoryFactory extends HubspaceAccessory {
 }
 
 // Export function if needed
-export function createAccessoryForDevice(device: DeviceResponse) {
+export function createAccessoryForDevice(device: DeviceResponse, platform: HubspacePlatform, existingAccessory: PlatformAccessory) {
   // Add your implementation for accessory creation
 }
