@@ -4,7 +4,9 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse } from '../responses/device-function-response'; // Import DeviceResponse
+import { DeviceFunctionResponse } from '../responses/device-function-response'; // Ensure this path is correct
+import { DeviceValues, ValuesRange } from './responses/device-values'; // Correct import paths
+
 
 export class OutletAccessory extends HubspaceAccessory {
   constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
@@ -62,9 +64,8 @@ export class OutletAccessory extends HubspaceAccessory {
    * @param {DeviceFunction} functionType - The device function to check
    * @returns {boolean} - True if supported, false otherwise
    */
-  private supportsFunction(functionType: DeviceFunction): boolean {
-    return this.device.functions.some((func) => func.functionClass === functionType);
-  }
+protected supportsFunction: boolean; // Ensure this matches the visibility in the base class
+
 
   /**
    * Remove any stale services from the accessory.
