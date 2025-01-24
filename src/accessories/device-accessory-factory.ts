@@ -1,33 +1,29 @@
-import { CharacteristicValue, PlatformAccessory } from 'homebridge';
-import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { PlatformAccessory } from 'homebridge';
+import { DeviceFunction, DeviceFunctionResponse } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
-import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse } from '../responses/device-function-response';
 
-export abstract class HubspaceAccessory {
-  // Change from 'Device' to 'DeviceResponse'
-  protected readonly device: DeviceResponse;
-
+/**
+ * Factory for creating device accessories.
+ */
+export class DeviceAccessoryFactory extends HubspaceAccessory {
   constructor(
-    protected readonly platform: HubspacePlatform,
-    protected readonly accessory: PlatformAccessory,
-    services: (Service | WithUUID<typeof Service>)[]
+    platform: HubspacePlatform,
+    accessory: PlatformAccessory,
+    private readonly services: (Service | WithUUID<typeof Service>)[]
   ) {
-    // Ensure the accessory's device context is correctly typed as DeviceResponse
-    this.device = accessory.context.device as DeviceResponse;
-    // Other existing code...
+    super(platform, accessory, services);
+
+    this.configurePower();
   }
-}
 
   private configurePower(): void {
-    const outletFunctions = this.device.description.functions.filter(
-      (func: DeviceFunctionResponse) => func.functionClass === DeviceFunction.OutletPower
-    );
+    const outletFunctions = this.device.description?.functions?.filter(
+      (func) => func.functionClass === DeviceFunction.OutletPower
+    ) || [];
 
     outletFunctions.forEach((func, index) => {
       const outletService = this.accessory.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
-
       outletService
         .getCharacteristic(this.platform.Characteristic.On)
         .onGet(() => this.getOutletPower(func))
@@ -47,7 +43,7 @@ export abstract class HubspaceAccessory {
       );
     }
 
-    return value!;
+    return value;
   }
 
   private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
