@@ -1,33 +1,40 @@
-/**
- * Response for device function
- */
+// src/responses/device-function-response.ts
 
-export interface DeviceValues{
-    /** Device values */
-    type: string;
-    /** key id */
-    key: string;
+// Assuming DeviceValues, ValuesRange, and DeviceFunctionValues are defined as per your earlier structure
+export interface DeviceValues {
+  /** Device values */
+  type: string;
+  /** Key ID */
+  key: string;
 }
 
-export interface ValuesRange{
-    /** miniumum value */
-    min: number;
-    /** maximum value */
-    max: number;
-    /** step value */
-    step: number;
+export interface ValuesRange {
+  /** Minimum value */
+  min: number;
+  /** Maximum value */
+  max: number;
+  /** Step value */
+  step: number;
 }
 
-export interface DeviceFunctionValues{
-    /** Name of the value */
-    name: string;
-    /** Possible values */
-    deviceValues: DeviceValues[];
-    /** Range of Values */
-    range: ValuesRange;
+export interface DeviceFunctionValues {
+  /** Name of the value */
+  name: string;
+  /** Possible values */
+  deviceValues: DeviceValues[];
+  /** Range of Values */
+  range: ValuesRange;
 }
 
-// Ensure the DeviceResponse interface is exported
+// DeviceFunctionResponse definition
+export interface DeviceFunctionResponse {
+  /** Type of function */
+  functionClass: string;
+  /** Values for the function */
+  values: DeviceFunctionValues[];
+}
+
+// DeviceResponse definition
 export interface DeviceResponse {
   id: string;
   deviceId: string;
@@ -40,6 +47,6 @@ export interface DeviceResponse {
       model: string;
       deviceClass: string;
     };
-    functions: DeviceFunctionResponse[];
+    functions: DeviceFunctionResponse[];  // Corrected usage of DeviceFunctionResponse here
   };
 }
