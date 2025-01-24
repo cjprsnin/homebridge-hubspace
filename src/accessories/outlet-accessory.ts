@@ -3,7 +3,7 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse } from '../models/device-function-response'; // Import DeviceResponse
+import { DeviceResponse } from '../responses/device-function-response'; // Make sure this path is correct
 
 export class OutletAccessory extends HubspaceAccessory {
   /**
@@ -72,9 +72,8 @@ export class SurgeProtectorAccessory extends HubspaceAccessory {
 
     // Create and configure a service for each outlet
     outletFunctions.forEach((func, index) => {
-      const outletService = new this.platform.Service.Outlet(this.accessory, `Outlet ${index + 1}`);
-      this.services.push(outletService);
-
+      const outletService = this.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
+      
       outletService
         .getCharacteristic(this.platform.Characteristic.On)
         .onGet(() => this.getOutletPower(func))
