@@ -4,6 +4,16 @@ import { DeviceFunctionResponse } from '../responses/device-function-response';
 /**
  * Device functions types
  */
+
+export interface DeviceFunctionValues {
+  /** Name of the value */
+  name: string;
+  /** Possible values */
+  deviceValues: DeviceValues[];
+  /** Range of values */
+  range?: ValuesRange;
+}
+
 export enum DeviceFunction{
     Power = 'power',
     Brightness = 'brightness',
