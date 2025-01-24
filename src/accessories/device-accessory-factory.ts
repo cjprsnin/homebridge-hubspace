@@ -8,7 +8,7 @@ import { LightAccessory } from './light-accessory';
 import { OutletAccessory } from './outlet-accessory';
 import { SurgeProtectorAccessory } from './outlet-accessory';
 import { SprinklerAccessory } from './sprinkler-accessory';
-
+import { DeviceFunctionValues } from '../models/device-functions';
 import { DeviceFunction } from '../models/device-functions';
 
 // src/responses/device-function-response.ts
