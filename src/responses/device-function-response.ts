@@ -28,10 +28,9 @@ export interface DeviceFunctionValues {
 
 // DeviceFunctionResponse definition
 export interface DeviceFunctionResponse {
-  /** Type of function */
   functionClass: string;
-  /** Values for the function */
-  values: DeviceFunctionValues[];
+  functionInstanceName: string;
+  deviceValues: DeviceValues[]; // Add this property
 }
 
 // DeviceResponse definition
