@@ -51,9 +51,8 @@ export abstract class HubspaceAccessory {
    * @param deviceFunction Function to check
    * @returns True if function is supported by the device otherwise false
    */
-  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
-    return this.device.functions.some(fc => fc.functionClass === deviceFunction);
-  }
+  protected supportsFunction: boolean; // Change to protected
+
 
   /**
    * Removes stale services that are not used anymore
