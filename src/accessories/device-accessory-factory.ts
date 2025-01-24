@@ -3,15 +3,22 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceFunctionResponse, DeviceResponse } from '../responses/device-function-response';
+import { DeviceResponse } from '../responses/device-function-response';
 
-export class OutletAccessory extends HubspaceAccessory {
-  constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
-    super(platform, accessory, [platform.Service.Outlet]);
+export abstract class HubspaceAccessory {
+  // Change from 'Device' to 'DeviceResponse'
+  protected readonly device: DeviceResponse;
 
-    this.configurePower();
-    this.removeStaleServices();
+  constructor(
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
+    services: (Service | WithUUID<typeof Service>)[]
+  ) {
+    // Ensure the accessory's device context is correctly typed as DeviceResponse
+    this.device = accessory.context.device as DeviceResponse;
+    // Other existing code...
   }
+}
 
   private configurePower(): void {
     const outletFunctions = this.device.description.functions.filter(
