@@ -1,6 +1,6 @@
 // src/accessories/outlet-accessory.ts
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
-import { DeviceFunction, DeviceFunctionResponse, getDeviceFunctionDef } from '../models/device-functions';
+import { DeviceFunction, getDeviceFunctionDef, DeviceFunctionResponse } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
@@ -35,7 +35,7 @@ export class OutletAccessory extends HubspaceAccessory {
    */
   private async getOn(): Promise<CharacteristicValue> {
     // Get the function definition for OutletPower
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
+    const func: DeviceFunctionResponse = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
     
     // Fetch the device value from the device service using the key
     const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[0].key);
@@ -54,7 +54,7 @@ export class OutletAccessory extends HubspaceAccessory {
    */
   private async setOn(value: CharacteristicValue): Promise<void> {
     // Get the function definition for OutletPower
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
+    const func: DeviceFunctionResponse = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
 
     // Set the device value using the device service and the key
     await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
