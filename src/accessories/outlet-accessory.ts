@@ -1,5 +1,5 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
-import { DeviceFunction } from '../models/device-functions';
+import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { isNullOrUndefined } from '../utils';
@@ -75,19 +75,11 @@ class OutletAccessory extends HubspaceAccessory {
     return value!;
 
   }
-     private async getOn(): Promise<CharacteristicValue>{
-        // Try to get the value
-        const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
-        const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.values[0].deviceValues[0].key);
 
-        // If the value is not defined then show 'Not Responding'
-        if(isNullOrUndefined(value)){
-            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-        }
-
-        // Otherwise return the value
-        return value!;
-      }
+  private async setOn(value: CharacteristicValue): Promise<void>{
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
+    await this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, value);
+}
 
   protected supportsFunction(deviceFunction: DeviceFunction): boolean {
     return deviceFunction === DeviceFunction.OutletPower;  // Correct way to compare enums
