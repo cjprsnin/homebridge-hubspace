@@ -7,7 +7,7 @@ import { HubspaceAccessory } from './hubspace-accessory';
 import { LightAccessory } from './light-accessory';
 import { OutletAccessory } from './outlet-accessory';
 import { SprinklerAccessory } from './sprinkler-accessory';
-import { MultiOutletAccessory } from './multi-outlet-accessory.ts';  // Ensure this is imported
+import { MultiOutletAccessory } from './multi-outlet-accessory';  // Ensure this is imported
 import { DeviceFunction } from '../models/device-functions';
 
 /**
