@@ -3,6 +3,7 @@ import { Device } from '../models/device';
 import { DeviceFunction } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
 import { DeviceService } from '../services/device.service';
+import { DeviceFunctionResponse } from '../responses/device-function-response';
 
 /**
  * Base class for Hubspace accessories
@@ -15,6 +16,14 @@ export abstract class HubspaceAccessory {
   protected readonly device: Device;
   protected supportsFunction: (deviceFunction: DeviceFunction) => boolean;
 
+  // Define the mapping between DeviceFunction enum and functionClass strings
+  private static functionClassMap: Record<DeviceFunction, string> = {
+    [DeviceFunction.OutletPower]: 'OutletPower',
+    [DeviceFunction.FanPower]: 'FanPower',
+    [DeviceFunction.FanSpeed]: 'FanSpeed',
+    // Add other mappings as needed
+  };
+
   /**
    * Creates new instance of {@link HubspaceAccessory}
    * @param platform Hubspace platform
@@ -24,7 +33,7 @@ export abstract class HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    services: (Service | WithUUID<typeof Service>)[] // Ensuring proper service types are passed
+    services: (Service | WithUUID<typeof Service>)[]
   ) {
     // Ensure correct service initialization, adding services if necessary
     for (const service of services) {
@@ -48,8 +57,10 @@ export abstract class HubspaceAccessory {
 
     // Initialize supportsFunction
     this.supportsFunction = (deviceFunction: DeviceFunction) => {
-    return this.device.functions.some(func => func.functionClass === deviceFunction);
+      const functionClass = HubspaceAccessory.functionClassMap[deviceFunction];
+      return this.device.functions.some(func => func.functionClass === functionClass);
     };
+  }
 
   /**
    * Removes stale services that are not used anymore
@@ -58,15 +69,3 @@ export abstract class HubspaceAccessory {
     const staleServices =
       this.accessory.services.slice(1).filter(a => !this.services.some(d => d.UUID === a.UUID && a.displayName === d.displayName));
     for (const staleService of staleServices) {
-      this.accessory.removeService(staleService);
-    }
-  }
-
-  /**
-   * Configures the name for a service
-   */
-  protected configureName(service: Service, name: string): void {
-    service.setCharacteristic(this.platform.Characteristic.Name, name);
-    service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
-  }
-}
