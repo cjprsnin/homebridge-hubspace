@@ -17,12 +17,16 @@ export abstract class HubspaceAccessory {
   protected supportsFunction: (deviceFunction: DeviceFunction) => boolean;
 
   // Define the mapping between DeviceFunction enum and functionClass strings
-  private static functionClassMap: Record<DeviceFunction, string> = {
-    [DeviceFunction.OutletPower]: 'OutletPower',
-    [DeviceFunction.FanPower]: 'FanPower',
-    [DeviceFunction.FanSpeed]: 'FanSpeed',
-    // Add other mappings as needed
-  };
+private static functionClassMap: Record<DeviceFunction, string> = {
+    power: "Power",
+    "fan-power": "Fan Power",
+    "fan-speed": "Fan Speed",
+    brightness: "Brightness",
+    "light-power": "Light Power",
+    "color-temperature": "Color Temperature",
+    "color-rgb": "Color RGB",
+};
+
 
   /**
    * Creates new instance of {@link HubspaceAccessory}
