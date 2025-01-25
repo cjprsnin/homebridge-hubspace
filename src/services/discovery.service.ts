@@ -132,7 +132,7 @@ export class DiscoveryService{
         for(const df of DeviceFunctions){
             // Collected only supported Device Functions
             const type = supportedFunctions
-                .find(fc => df.functionInstanceName === fc.functionInstance && df.functionClass === fc.functionClass);
+                .find(fc => df.functionInstanceName === fc.ffunctionInstanceName && df.functionClass === fc.functionClass);
 
             if(type === undefined || output.indexOf(type) >= 0) continue;
 
