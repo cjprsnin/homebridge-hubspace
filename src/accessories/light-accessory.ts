@@ -1,66 +1,66 @@
-// Updated code to handle the absence of 'values' in DeviceFunctionResponse and improve type safety.
-import { DeviceFunctionResponse } from '../responses/device-function-response';
+import { DeviceFunction, DeviceFunctionResponse } from "../models";
+import { HubspaceAccessory } from "./hubspace-accessory";
 
-class LightAccessory {
-    constructor(private deviceService: DeviceService, private device: Device) {}
+export class LightAccessory extends HubspaceAccessory {
 
-    async handleFunction(func: DeviceFunctionResponse) {
-        // Check if 'values' exists and has the expected structure
-        if (!func.values || func.values.length === 0 || !func.values[0].deviceValues || func.values[0].deviceValues.length === 0) {
-            console.error("Unexpected response structure", func);
-            return;
+    protected supportsFunction(deviceFunction: DeviceFunction): boolean {
+        return ["light-power", "brightness", "color-temperature", "color-rgb"].includes(deviceFunction.type);
+    }
+
+    private getKeyFromFunctionResponse(func: DeviceFunctionResponse): string | undefined {
+        if (!func.values?.[0]?.deviceValues?.[0]?.key) {
+            console.error("Invalid function response: missing values or keys");
+            return undefined;
         }
+        return func.values[0].deviceValues[0].key;
+    }
 
-        // Access the key safely
-        const key = func.values[0].deviceValues[0].key;
-        if (!key) {
-            console.error("Key not found in the response", func);
-            return;
-        }
+    public async getPowerState(func: DeviceFunctionResponse): Promise<boolean | undefined> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return undefined;
 
-        // Example usage of the key
-        const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, key);
+        return await this.deviceService.getValueAsBoolean(this.device.deviceId, key);
+    }
+
+    public async setPowerState(func: DeviceFunctionResponse, value: boolean): Promise<void> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return;
+
         await this.deviceService.setValue(this.device.deviceId, key, value);
     }
 
-    async setKelvin(func: DeviceFunctionResponse, kelvin: number) {
-        if (!func.values || func.values.length === 0 || !func.values[0].deviceValues || func.values[0].deviceValues.length === 0) {
-            console.error("Unexpected response structure", func);
-            return;
-        }
+    public async getBrightness(func: DeviceFunctionResponse): Promise<number | undefined> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return undefined;
 
-        const key = func.values[0].deviceValues[0].key;
-        if (!key) {
-            console.error("Key not found in the response", func);
-            return;
-        }
+        return await this.deviceService.getValueAsInteger(this.device.deviceId, key);
+    }
+
+    public async setBrightness(func: DeviceFunctionResponse, value: number): Promise<void> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return;
+
+        await this.deviceService.setValue(this.device.deviceId, key, value);
+    }
+
+    public async getColorMode(func: DeviceFunctionResponse): Promise<boolean | undefined> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return undefined;
+
+        return await this.deviceService.getValueAsBoolean(this.device.deviceId, key);
+    }
+
+    public async setKelvin(func: DeviceFunctionResponse, kelvin: number): Promise<void> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return;
 
         await this.deviceService.setValue(this.device.deviceId, key, kelvin);
     }
 
-    async setRgb(func: DeviceFunctionResponse, rgb: string) {
-        if (!func.values || func.values.length === 0 || !func.values[0].deviceValues || func.values[0].deviceValues.length === 0) {
-            console.error("Unexpected response structure", func);
-            return;
-        }
-
-        const key = func.values[0].deviceValues[0].key;
-        if (!key) {
-            console.error("Key not found in the response", func);
-            return;
-        }
+    public async setRGB(func: DeviceFunctionResponse, rgb: string): Promise<void> {
+        const key = this.getKeyFromFunctionResponse(func);
+        if (!key) return;
 
         await this.deviceService.setValue(this.device.deviceId, key, rgb);
     }
-}
-
-interface DeviceService {
-    getValueAsBoolean(deviceId: string, key: string): Promise<boolean>;
-    getValueAsInteger(deviceId: string, key: string): Promise<number>;
-    getValue(deviceId: string, key: string): Promise<string>;
-    setValue(deviceId: string, key: string, value: any): Promise<void>;
-}
-
-interface Device {
-    deviceId: string;
 }
