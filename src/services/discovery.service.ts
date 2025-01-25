@@ -104,6 +104,8 @@ export class DiscoveryService {
             const response = await this._httpClient.get<DeviceResponse[]>(
                 `accounts/${this._platform.accountService.accountId}/metadevices`
             );
+             // Log the full response to inspect the API structure
+            this._platform.log.info('API Response:', JSON.stringify(response.data, null, 2));
 
             return response.data
                 .map(this.mapDeviceResponseToModel.bind(this))
@@ -115,10 +117,21 @@ export class DiscoveryService {
     }
 
     private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
+        // Check if description and device are available in the response
+        if (!response.description || !response.description.device) {
+            this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
+            return undefined;
+        }
+    
         const type = getDeviceTypeForKey(response.description.device.deviceClass);
-
-        if (!type) return undefined;
-
+    
+        // If no valid device type is found, skip the device
+        if (!type) {
+            this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
+            return undefined;
+        }
+    
+        // Map the valid response to a Device model
         return {
             id: response.id,
             uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -128,9 +141,10 @@ export class DiscoveryService {
             manufacturer: response.description.device.manufacturerName,
             model: response.description.device.model.split(',').map((m) => m.trim()),
             functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-            children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Type guard to ensure only Device objects remain
+            children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Ensure child devices are valid
         };
     }
+    
 
     private getSupportedFunctionsFromResponse(
         supportedFunctions: DeviceFunctionResponse[]
