@@ -97,9 +97,7 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
  * @throws {@link Error} when a type has no definition associated with it
  */
 export function getDeviceFunctionDef(
-    deviceFunctionResponse: DeviceFunctionResponse[],
-    deviceFunction: DeviceFunction,
-    deviceFunctionInstance?: DeviceFunction): DeviceFunctionResponse{
+deviceFunctionResponse: DeviceFunctionResponse[], deviceFunction: DeviceFunction, deviceFunctionInstance?: DeviceFunction, outletIndex?: number): DeviceFunctionResponse{
 
     const fc = deviceFunctionResponse.find(fc => fc.functionClass === deviceFunction &&
         (deviceFunctionInstance ? fc.functionInstance === deviceFunctionInstance : true));

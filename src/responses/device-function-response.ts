@@ -28,6 +28,7 @@ export interface DeviceFunctionValues{
 }
 
 export interface DeviceFunctionResponse{
+  deviceValues: any;
   /** Class of the function */
   functionClass: string;
   /** Instance name of the function */

@@ -1,89 +1,72 @@
-import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
+import { PlatformAccessory, Service, CharacteristicValue } from 'homebridge';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { isNullOrUndefined } from '../utils';
-import { DeviceFunctionResponse } from '../responses/device-function-response';
 
-export class DeviceAccessoryFactory {
-  constructor(private readonly platform: HubspacePlatform) {}
+/**
+ * OutletAccessory handles outlet device functionalities
+ */
+export class OutletAccessory extends HubspaceAccessory {
+    private outletCount: number;
 
-  createAccessory(accessory: PlatformAccessory): HubspaceAccessory {
-    // Implement the logic to create the appropriate accessory
-    // This is just a placeholder implementation
-    return new OutletAccessory(this.platform, accessory);
-  }
-
-  private getOutletPower(func: DeviceFunctionResponse): CharacteristicValue {
-    if (!func.deviceValues || func.deviceValues.length === 0) {
-      throw new Error('deviceValues not found');
-    }
-    // Implement the logic to get outlet power
-    return false; // Placeholder return
-  }
-
-  private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
-    if (func.deviceValues && func.deviceValues.length > 0) {
-      // Implement the logic for setting outlet power
-      // For example:
-      // await this.platform.deviceService.setValue(func.deviceId, func.deviceValues[0].key, value);
-    } else {
-      throw new Error('deviceValues not found');
-    }
-  }
-
-  protected removeStaleServices(accessory: PlatformAccessory): void {
-    // Implement the logic for removing stale services
-    // For example:
-    // const staleServices = accessory.services.filter(service => !this.isServiceSupported(service));
-    // staleServices.forEach(service => accessory.removeService(service));
-  }
-
-  private isServiceSupported(service: Service): boolean {
-    // Implement the logic to check if a service is supported
-    return true; // Placeholder return
-  }
-}
-
-// Example of an accessory class that might be created by the factory
-class OutletAccessory extends HubspaceAccessory {
-  constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
-    super(platform, accessory, [platform.Service.Outlet]);
-    this.configurePower();
-  }
-
-  private configurePower(): void {
-    if (this.supportsFunction(DeviceFunction.OutletPower)) {
-      this.services[0]
-        .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(this.getOn.bind(this))
-        .onSet(this.setOn.bind(this));
-    }
-  }
-
-  private async getOn(): Promise<CharacteristicValue>{
-    // Try to get the value
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
-    const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.values[0].deviceValues[0].key);
-
-    // If the value is not defined then show 'Not Responding'
-    if(isNullOrUndefined(value)){
-        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    /**
+     * Creates a new instance of the accessory
+     * @param platform Hubspace platform
+     * @param accessory Platform accessory
+     * @param outletCount The number of outlets (for multi-outlet devices)
+     */
+    constructor(platform: HubspacePlatform, accessory: PlatformAccessory, outletCount: number) {
+        super(platform, accessory, [platform.Service.Outlet]);
+        this.outletCount = outletCount;  // Store the outlet count
+        this.configureOutlets();
+        this.removeStaleServices();
     }
 
-    // Otherwise return the value
-    return value!;
+    private configureOutlets(): void {
+        // Check if the device supports OutletPower function
+        if (this.supportsFunction(DeviceFunction.OutletPower)) {
+            // Iterate through the outlets and create services for each
+            for (let outletIndex = 0; outletIndex < this.outletCount; outletIndex++) {
+                this.services.push(this.createOutletService(outletIndex));
+            }
+        }
+    }
 
-  }
+    private createOutletService(outletIndex: number): Service {
+        // Create a new outlet service for each outlet
+        const outletService = new this.platform.api.hap.Service.Outlet(this.accessory.displayName + ` Outlet ${outletIndex + 1}`);
 
-  private async setOn(value: CharacteristicValue): Promise<void>{
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
-    await this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, value);
-}
+        // Set up handlers for the On characteristic for each outlet
+        outletService
+            .getCharacteristic(this.platform.Characteristic.On)
+            .onGet(this.getOn.bind(this, outletIndex))  // Pass outletIndex to the handler
+            .onSet(this.setOn.bind(this, outletIndex)); // Pass outletIndex to the handler
 
-  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
-    return deviceFunction === DeviceFunction.OutletPower;  // Correct way to compare enums
-  }
-  
+        return outletService;
+    }
 
+    private async getOn(outletIndex: number): Promise<CharacteristicValue> {
+        // Get the function definition for OutletPower for a specific outlet
+        const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, outletIndex);
+
+        // Fetch the outlet's value based on the outletIndex
+        const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[outletIndex].key);
+
+        // If the value is not defined then show 'Not Responding'
+        if (isNullOrUndefined(value)) {
+            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+        }
+
+        // Otherwise return the value
+        return value!;
+    }
+
+    private async setOn(outletIndex: number, value: CharacteristicValue): Promise<void> {
+        // Get the function definition for OutletPower for a specific outlet
+        const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, outletIndex);
+
+        // Set the outlet's power value based on the outletIndex
+        await this.deviceService.setValue(this.device.deviceId, func.deviceValues[outletIndex].key, value);
+    }
 }

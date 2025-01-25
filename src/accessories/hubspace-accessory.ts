@@ -1,10 +1,4 @@
-import {
-  PlatformConfig,
-  Logger,
-  PlatformAccessory,
-  Service,
-  WithUUID,
-} from 'homebridge';
+import {PlatformConfig,  Logger,  PlatformAccessory,  Service,  WithUUID,} from 'homebridge';
 import { Device } from '../models/device';
 import { DeviceFunction } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';

@@ -1,73 +1,35 @@
-import { CharacteristicValue, PlatformAccessory, Service, WithUUID } from 'homebridge';
-import { DeviceFunctionResponse } from '../responses/device-function-response';
+import { PlatformAccessory } from 'homebridge';
+import { Device } from '../models/device';
+import { DeviceType } from '../models/device-type';
 import { HubspacePlatform } from '../platform';
+import { FanAccessory } from './fan-accessory';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceResponse } from '../responses/device-function-response';
+import { LightAccessory } from './light-accessory';
+import { OutletAccessory } from './outlet-accessory';
+import { SprinklerAccessory } from './sprinkler-accessory';
 
-export class DeviceAccessoryFactory extends HubspaceAccessory {
-  constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
-    super(platform, accessory, [platform.Service.Outlet]);
-    this.configureDeviceFunctions();
-    this.removeStaleServices();
-  }
+import { DeviceFunction } from '../models/device-functions';
 
-  private getOutletFunctions(): DeviceFunctionResponse[] {
-    const outletFunctions = (this.device as unknown as DeviceResponse).description.functions.filter(
-      (func) => func.functionClass === 'OutletPower'
-    );
-
-    if (!outletFunctions || outletFunctions.length === 0) {
-      throw new Error('No outlet functions found for this device');
+/**
+ * Creates {@link HubspaceAccessory} for a specific {@link DeviceType}
+ * @param device Device information
+ * @param platform Hubspace platform
+ * @param accessory Platform accessory
+ * @returns {@link HubspaceAccessory}
+ * @throws If device type is not supported
+ */
+export function createAccessoryForDevice(device: Device, platform: HubspacePlatform, accessory: PlatformAccessory): HubspaceAccessory{
+    switch(device.type){
+        case DeviceType.Light:
+            return new LightAccessory(platform, accessory);
+        case DeviceType.Fan:
+            return new FanAccessory(platform, accessory);
+            return new OutletAccessory(platform, accessory, 1);  // For single outlet
+        case DeviceType.MultiOutlet:
+            return new OutletAccessory(platform, accessory, 4);  // Example: 4 outlets for multi-outlet devices
+        case DeviceType.Sprinkler:
+            return new SprinklerAccessory(platform, accessory);
+        default:
+            throw new Error(`Accessory of type '${device.type}' is not supported.`);
     }
-
-    return outletFunctions;
-  }
-
-  private configureDeviceFunctions(): void {
-    const outletFunctions = this.getOutletFunctions();
-
-    outletFunctions.forEach((func, index) => {
-      const outletService = this.accessory.addService(this.platform.Service.Outlet, `Outlet ${index + 1}`);
-
-      outletService
-        .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(() => this.getOutletPower(func))
-        .onSet((value) => this.setOutletPower(func, value));
-    });
-  }
-
-  private async getOutletPower(func: DeviceFunctionResponse): Promise<CharacteristicValue> {
-    if (func.deviceValues && func.deviceValues.length > 0) {
-      const value = await this.deviceService.getValueAsBoolean(
-        this.device.deviceId,
-        func.deviceValues[0].key
-      );
-
-      if (value === null || value === undefined) {
-        throw new this.platform.api.hap.HapStatusError(
-          this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE
-        );
-      }
-
-      return value;
-    }
-
-    throw new Error('deviceValues not found');
-  }
-
-  private async setOutletPower(func: DeviceFunctionResponse, value: CharacteristicValue): Promise<void> {
-    if (func.deviceValues && func.deviceValues.length > 0) {
-      await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
-    } else {
-      throw new Error('deviceValues not found');
-    }
-  }
-
-  protected removeStaleServices(): void {
-    // Implement logic for removing stale services
-  }
-}
-
-export function createAccessoryForDevice(device: DeviceResponse, platform: HubspacePlatform, existingAccessory: PlatformAccessory) {
-  // Add your implementation for accessory creation
 }
