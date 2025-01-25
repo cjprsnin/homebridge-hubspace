@@ -48,9 +48,8 @@ export abstract class HubspaceAccessory {
 
     // Initialize supportsFunction
     this.supportsFunction = (deviceFunction: DeviceFunction) => {
-      return this.device.functions.some(func => func.function === deviceFunction);
+    return this.device.functions.some(func => func.functionClass === deviceFunction);
     };
-  }
 
   /**
    * Removes stale services that are not used anymore
