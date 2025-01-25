@@ -13,8 +13,7 @@ export abstract class HubspaceAccessory {
   protected readonly config: PlatformConfig;
   protected readonly deviceService: DeviceService;
   protected readonly device: Device;
-  protected supportsFunction: boolean; // Change to protected
-
+  protected supportsFunction: (deviceFunction: DeviceFunction) => boolean;
 
   /**
    * Creates new instance of {@link HubspaceAccessory}
@@ -46,15 +45,12 @@ export abstract class HubspaceAccessory {
       .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
       .setCharacteristic(this.platform.Characteristic.Model, this.device.model.length > 0 ? this.device.model[0] : 'N/A')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
+
+    // Initialize supportsFunction
+    this.supportsFunction = (deviceFunction: DeviceFunction) => {
+      return this.device.functions.some(func => func.function === deviceFunction);
+    };
   }
-
-  /**
-   * Checks whether function is supported by device
-   * @param deviceFunction Function to check
-   * @returns True if function is supported by the device otherwise false
-   */
-  protected supportsFunction: boolean; // Change to protected
-
 
   /**
    * Removes stale services that are not used anymore
