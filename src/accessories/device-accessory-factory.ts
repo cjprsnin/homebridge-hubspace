@@ -7,7 +7,7 @@ import { HubspaceAccessory } from './hubspace-accessory';
 import { LightAccessory } from './light-accessory';
 import { OutletAccessory } from './outlet-accessory';
 import { SprinklerAccessory } from './sprinkler-accessory';
-
+import { MultiOutletAccessory } from './multi-outlet-accessory.ts';  // Ensure this is imported
 import { DeviceFunction } from '../models/device-functions';
 
 /**
@@ -24,9 +24,10 @@ export function createAccessoryForDevice(device: Device, platform: HubspacePlatf
             return new LightAccessory(platform, accessory);
         case DeviceType.Fan:
             return new FanAccessory(platform, accessory);
+        case DeviceType.Outlet:
             return new OutletAccessory(platform, accessory, 1);  // For single outlet
         case DeviceType.MultiOutlet:
-            return new OutletAccessory(platform, accessory, 4);  // Example: 4 outlets for multi-outlet devices
+            return new MultiOutletAccessory(platform, accessory);  // Example: 4 outlets for multi-outlet devices
         case DeviceType.Sprinkler:
             return new SprinklerAccessory(platform, accessory);
         default:

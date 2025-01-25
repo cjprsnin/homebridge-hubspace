@@ -6,7 +6,7 @@ export enum DeviceType{
     Fan = 'fan',
     Outlet = 'power-outlet',
     Sprinkler = 'sprinkler',
-    MultiOutlet = "MultiOutlet"
+    MultiOutlet = "multi-outlet-accessory"
 }
 
 /**
