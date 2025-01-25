@@ -1,10 +1,8 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
-import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
-import { DeviceValues, ValuesRange } from '../responses/device-values';
 
 export class DeviceAccessoryFactory {
   constructor(private readonly platform: HubspacePlatform) {}
