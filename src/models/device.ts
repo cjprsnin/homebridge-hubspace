@@ -21,4 +21,5 @@ export interface Device{
     model: string[];
     /** Supported device functions */
     functions: DeviceFunctionResponse[];
+    children?: Device[]; // Add this to support child devices
 }

@@ -6,7 +6,6 @@ import { DeviceFunctionResponse } from './device-function-response';
 export interface DeviceResponse{
     id: string;
     deviceId: string;
-    children: DeviceResponse[];
     typeId: string;
     friendlyName: string;
     description: {
@@ -16,5 +15,7 @@ export interface DeviceResponse{
             deviceClass: string;
         };
         functions: DeviceFunctionResponse[];
+        
     };
+    children?: DeviceResponse[]; // Add this to match the API response
 }
