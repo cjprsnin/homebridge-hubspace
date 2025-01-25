@@ -32,7 +32,7 @@ export class FanAccessory extends HubspaceAccessory {
   }
  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
     // Logic to determine support for the function
-    return deviceFunction.type === "fan-power" || deviceFunction.type === "fan-speed";
+    return deviceFunction.functionClass === DeviceFunction.fanpower || deviceFunction.functionClass === DeviceFunction.fanspeed;
 }
 
   private async setActive(value: CharacteristicValue): Promise<void> {
