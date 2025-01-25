@@ -1,7 +1,7 @@
 /**
  * Type of a device
  */
-export enum DeviceType{
+export enum DeviceType {
     Light = 'light',
     Fan = 'fan',
     Outlet = 'power-outlet',
@@ -12,10 +12,10 @@ export enum DeviceType{
 /**
  * Gets {@link DeviceType} for a specific key
  * @param key Device key
- * @returns {@link DeviceType} if key is found otherwise undefined
+ * @returns {@link DeviceType} if key is found, otherwise undefined
  */
-export function getDeviceTypeForKey(key: string): DeviceType | undefined{
-    switch(key){
+export function getDeviceTypeForKey(key: string): DeviceType | undefined {
+    switch(key.toLowerCase()) { // Added to ensure case-insensitivity
         case 'light':
             return DeviceType.Light;
         case 'fan':
@@ -24,7 +24,9 @@ export function getDeviceTypeForKey(key: string): DeviceType | undefined{
             return DeviceType.Outlet;
         case 'water-timer':
             return DeviceType.Sprinkler;
+        case 'multi-outlet-accessory':  // Added case for MultiOutlet
+            return DeviceType.MultiOutlet;
         default:
-            return undefined;
+            return undefined; // Can log invalid types if needed for debugging
     }
 }

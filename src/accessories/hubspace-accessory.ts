@@ -1,4 +1,4 @@
-import {PlatformConfig,  Logger,  PlatformAccessory,  Service,  WithUUID,} from 'homebridge';
+import { PlatformConfig, Logger, PlatformAccessory, Service, WithUUID } from 'homebridge';
 import { Device } from '../models/device';
 import { DeviceFunction } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
@@ -35,20 +35,10 @@ export abstract class HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    services: (Service | WithUUID<typeof Service>)[]
+    services: (Service | WithUUID<typeof Service>)[] 
   ) {
     // Initialize services
-    for (const service of services) {
-      const initializedService =
-        accessory.getServiceById(
-          (service as Service).displayName,
-          (service as Service).subtype!
-        ) ||
-        accessory.getService(service as WithUUID<typeof Service>) ||
-        this.accessory.addService(service as Service);
-
-      this.services.push(initializedService);
-    }
+    services.forEach(service => this.initializeService(service));
 
     this.config = platform.config;
     this.log = platform.log;
@@ -56,6 +46,28 @@ export abstract class HubspaceAccessory {
     this.device = accessory.context.device;
 
     // Set accessory information
+    this.setAccessoryInformation();
+  }
+
+  /**
+   * Initializes a service by either retrieving an existing one or adding a new one.
+   */
+  private initializeService(service: Service | WithUUID<typeof Service>): void {
+    const initializedService =
+      this.accessory.getServiceById(
+        (service as Service).displayName,
+        (service as Service).subtype!
+      ) ||
+      this.accessory.getService(service as WithUUID<typeof Service>) ||
+      this.accessory.addService(service as Service);
+
+    this.services.push(initializedService);
+  }
+
+  /**
+   * Sets the accessory information (Manufacturer, Model, SerialNumber).
+   */
+  private setAccessoryInformation(): void {
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(
@@ -86,7 +98,7 @@ export abstract class HubspaceAccessory {
   }
 
   /**
-   * Removes stale services that are no longer used
+   * Removes stale services that are no longer used.
    */
   protected removeStaleServices(): void {
     const staleServices = this.accessory.services
@@ -102,11 +114,12 @@ export abstract class HubspaceAccessory {
 
     for (const staleService of staleServices) {
       this.accessory.removeService(staleService);
+      this.log.info(`Removed stale service: ${staleService.displayName}`);
     }
   }
 
   /**
-   * Configures the name for a service
+   * Configures the name for a service.
    */
   protected configureName(service: Service, name: string): void {
     service.setCharacteristic(this.platform.Characteristic.Name, name);
@@ -114,5 +127,6 @@ export abstract class HubspaceAccessory {
       this.platform.Characteristic.ConfiguredName,
       name
     );
+    this.log.info(`Configured service name: ${name}`);
   }
 }

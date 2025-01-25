@@ -4,7 +4,7 @@ import { DeviceFunctionResponse } from '../responses/device-function-response';
 /**
  * Device functions types
  */
-export enum DeviceFunction{
+export enum DeviceFunction {
     Power = 'power',
     Brightness = 'brightness',
     FanLightPower = 'light-power',
@@ -55,9 +55,6 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
     {
         functionClass: DeviceFunction.LightColor
     },
-    // This is to switch between Temperature (val:0) and Color (val:1) Light Modes, as Homekit sees these as mutually
-    // exclusive, the value should always be Color (val:1) when being controlled by Homekit, otherwise 'undefined' will
-    // be returned when reading the current color setting
     {
         functionClass: DeviceFunction.ColorMode
     },
@@ -92,20 +89,35 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
 
 /**
  * Gets function definition for a type
- * @param deviceFunction Function type
+ * @param deviceFunctionResponse Function response array from device
+ * @param deviceFunction Function type to find
+ * @param deviceFunctionInstance Optional function instance for further specificity
+ * @param outletIndex Optional outlet index for more detailed selection
  * @returns Function definition for type
  * @throws {@link Error} when a type has no definition associated with it
  */
 export function getDeviceFunctionDef(
-deviceFunctionResponse: DeviceFunctionResponse[], deviceFunction: DeviceFunction, deviceFunctionInstance?: DeviceFunction, outletIndex?: number): DeviceFunctionResponse{
+    deviceFunctionResponse: DeviceFunctionResponse[], 
+    deviceFunction: DeviceFunction, 
+    deviceFunctionInstance?: DeviceFunction, 
+    outletIndex?: number
+): DeviceFunctionResponse {
+    // Look for matching functionClass, and optionally functionInstance
+    const fc = deviceFunctionResponse.find(fc => 
+        fc.functionClass === deviceFunction &&
+        (deviceFunctionInstance ? fc.functionInstance === deviceFunctionInstance : true) &&
+        (outletIndex !== undefined ? fc.outletIndex === outletIndex : true)
+    );
 
-    const fc = deviceFunctionResponse.find(fc => fc.functionClass === deviceFunction &&
-        (deviceFunctionInstance ? fc.functionInstance === deviceFunctionInstance : true));
-
-    // Throw an error when not found - function definition must be set during development,
-    // otherwise the plugin will not work as expected.
-    if(!fc){
-        throw new Error(`Failed to get function definition for '${deviceFunction}'. Each function requires to set a definition.`);
+    // Throw an error if no matching function definition is found
+    if (!fc) {
+        const errorDetails = {
+            deviceFunctionResponse,
+            deviceFunction,
+            deviceFunctionInstance,
+            outletIndex
+        };
+        throw new Error(`Failed to get function definition for '${deviceFunction}'. Each function requires to set a definition. Details: ${JSON.stringify(errorDetails)}`);
     }
 
     return fc;

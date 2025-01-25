@@ -2,36 +2,37 @@
  * Response for device function
  */
 
-export interface DeviceValues{
-  /** Device values */
+export interface DeviceValues {
+  /** Type of the value (e.g., "status", "temperature") */
   type: string;
-  /** key id */
+  /** Unique key id for the value */
   key: string;
 }
 
-export interface ValuesRange{
-  /** miniumum value */
+export interface ValuesRange {
+  /** Minimum allowed value */
   min: number;
-  /** maximum value */
+  /** Maximum allowed value */
   max: number;
-  /** step value */
+  /** Step increment for value adjustments */
   step: number;
 }
 
-export interface DeviceFunctionValues{
-  /** Name of the value */
+export interface DeviceFunctionValues {
+  /** Name of the value (e.g., "power", "brightness") */
   name: string;
-  /** Possible values */
+  /** Possible values for the function */
   deviceValues: DeviceValues[];
-  /** Range of Values */
-  range: ValuesRange;
+  /** Optional range of values */
+  range?: ValuesRange;
 }
 
-export interface DeviceFunctionResponse{
-  deviceValues: any;
-  /** Class of the function */
+export interface DeviceFunctionResponse {
+  /** Additional device values metadata (e.g., possible statuses or configurations) */
+  deviceValues: DeviceValues[];
+  /** Class of the function (e.g., "power", "lighting") */
   functionClass: string;
-  /** Instance name of the function */
+  /** Instance name of the function (e.g., "on/off", "brightness") */
   functionInstance: string;
   /** Function values */
   values: DeviceFunctionValues[];

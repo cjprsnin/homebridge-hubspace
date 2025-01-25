@@ -6,11 +6,14 @@ import { TokenService } from '../services/token.service';
  * @param config Axios request configuration
  * @returns Config with Bearer token
  */
-export async function addBearerToken(config: InternalAxiosRequestConfig<unknown>): Promise<InternalAxiosRequestConfig<unknown>>{
+export async function addBearerToken(config: InternalAxiosRequestConfig<unknown>): Promise<InternalAxiosRequestConfig<unknown>> {
     const token = await TokenService.instance.getToken();
 
-    if(token){
+    if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+    } else {
+        // Optional: Log or handle the case where no token is available
+        console.warn('No Bearer token found');
     }
 
     return config;

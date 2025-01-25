@@ -8,172 +8,194 @@ import { DeviceType, getDeviceTypeForKey } from '../models/device-type';
 import { Device } from '../models/device';
 import { createAccessoryForDevice } from '../accessories/device-accessory-factory';
 import { AxiosError } from 'axios';
-import { DeviceFunction, DeviceFunctions } from '../models/device-functions';
-import { DeviceFunctionResponse } from '../responses/device-function-response';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  DeviceFunctionResponse,
+  DeviceFunctionValues,
+  DeviceValues,
+  ValuesRange,
+} from '../responses/device-function-response';
 
 /**
  * Service for discovering and managing devices
  */
 export class DiscoveryService {
-    private readonly _httpClient = createHttpClientWithBearerInterceptor({
-        baseURL: Endpoints.API_BASE_URL,
-        headers: {
-            host: 'semantics2.afero.net',
-        },
+  private readonly _httpClient = createHttpClientWithBearerInterceptor({
+    baseURL: Endpoints.API_BASE_URL,
+    headers: {
+      host: 'semantics2.afero.net',
+    },
+  });
+
+  private _cachedAccessories: PlatformAccessory[] = [];
+
+  constructor(private readonly _platform: HubspacePlatform) {}
+
+  /**
+   * Receives accessory that has been cached by Homebridge
+   * @param accessory Cached accessory
+   */
+  configureCachedAccessory(accessory: PlatformAccessory): void {
+    this._cachedAccessories.push(accessory);
+  }
+
+  /**
+   * Discovers new devices
+   */
+  async discoverDevices() {
+    const devices = await this.getDevicesForAccount();
+
+    for (const device of devices) {
+      let existingAccessory = this._cachedAccessories.find(
+        (accessory) => accessory.UUID === device.uuid
+      );
+
+      if (existingAccessory) {
+        this._platform.log.info(
+          'Restoring existing accessory from cache:',
+          existingAccessory.displayName
+        );
+        this.registerCachedAccessory(existingAccessory, device);
+      } else {
+        this._platform.log.info('Adding new accessory:', device.name);
+        existingAccessory = this.registerNewAccessory(device);
+      }
+
+      // Handle multi-outlet and single-outlet devices
+      if (device.type === DeviceType.MultiOutlet && device.children) {
+        createAccessoryForDevice(device, this._platform, existingAccessory, device.children.length);
+      } else {
+        createAccessoryForDevice(device, this._platform, existingAccessory);
+      }
+    }
+
+    this.clearStaleAccessories(
+      this._cachedAccessories.filter((a) => !devices.some((d) => d.uuid === a.UUID))
+    );
+
+    // Export the JSON results
+    await this.exportDevicesToFile(devices);
+  }
+
+  private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
+    this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
+
+    for (const accessory of staleAccessories) {
+      const cacheIndex = this._cachedAccessories.findIndex((a) => a.UUID === accessory.UUID);
+
+      if (cacheIndex < 0) continue;
+
+      this._platform.log.info('Removing stale accessory:', accessory.displayName);
+      this._cachedAccessories.splice(cacheIndex, 1);
+    }
+  }
+
+  private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
+    accessory.context.device = device;
+    this._platform.api.updatePlatformAccessories([accessory]);
+  }
+
+  private registerNewAccessory(device: Device): PlatformAccessory {
+    const accessory = new this._platform.api.platformAccessory(device.name, device.uuid);
+    accessory.context.device = device;
+    this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    return accessory;
+  }
+
+  private async getDevicesForAccount(): Promise<Device[]> {
+    try {
+      const response = await this._httpClient.get<DeviceResponse[]>(
+        `accounts/${this._platform.accountService.accountId}/metadevices`
+      );
+
+      return response.data
+        .map(this.mapDeviceResponseToModel.bind(this))
+        .filter((device: any): device is Device => !!device); // Filter out undefined devices
+    } catch (ex) {
+      this._platform.log.error('Failed to get devices for account.', (<AxiosError>ex).message);
+      return [];
+    }
+  }
+
+  private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
+    // Check if description and device are available in the response
+    if (!response.description || !response.description.device) {
+      this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
+      return undefined;
+    }
+
+    const type = getDeviceTypeForKey(response.description.device.deviceClass);
+
+    // If no valid device type is found, skip the device
+    if (!type) {
+      this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
+      return undefined;
+    }
+
+    // Map the valid response to a Device model
+    return {
+      id: response.id,
+      uuid: this._platform.api.hap.uuid.generate(response.id),
+      deviceId: response.deviceId,
+      name: response.friendlyName,
+      type: type,
+      manufacturer: response.description.device.manufacturerName,
+      model: response.description.device.model.split(',').map((m) => m.trim()),
+      functions: this.getSupportedFunctionsFromResponse(response.description.functions),
+      children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Ensure child devices are valid
+    };
+  }
+
+  private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
+    const output: DeviceFunctionResponse[] = [];
+
+    functions.forEach((func) => {
+      if (func && func.values) {
+        const functionResponse: DeviceFunctionResponse = {
+          functionInstance: func.id,
+          functionClass: func.functionClass,
+          values: this.mapFunctionValues(func.values), // Map values to the correct structure
+          deviceValues: func.deviceValues || [], // If deviceValues exist, include them
+        };
+        output.push(functionResponse);
+      }
     });
 
-    private _cachedAccessories: PlatformAccessory[] = [];
+    return output;
+  }
 
-    constructor(private readonly _platform: HubspacePlatform) {}
+  private mapFunctionValues(values: any[]): DeviceFunctionValues[] {
+    return values.map((value) => ({
+      name: value.name,
+      deviceValues: value.deviceValues.map((deviceValue: DeviceValues) => ({
+        type: deviceValue.type,
+        key: deviceValue.key,
+      })),
+      range: this.mapRange(value.range), // Map the range if available
+    }));
+  }
 
-    /**
-     * Receives accessory that has been cached by Homebridge
-     * @param accessory Cached accessory
-     */
-    configureCachedAccessory(accessory: PlatformAccessory): void {
-        this._cachedAccessories.push(accessory);
+  private mapRange(range: any): ValuesRange {
+    if (range && range.min !== undefined && range.max !== undefined && range.step !== undefined) {
+      return {
+        min: range.min,
+        max: range.max,
+        step: range.step,
+      };
     }
+    return { min: 0, max: 100, step: 1 }; // Default range values if not provided
+  }
 
-    /**
-     * Discovers new devices
-     */
-    async discoverDevices() {
-        const devices = await this.getDevicesForAccount();
+  private async exportDevicesToFile(devices: Device[]): Promise<void> {
+    try {
+      const filePath = path.resolve(__dirname, '../../devices.json'); // Path to save the file
 
-        for (const device of devices) {
-            let existingAccessory = this._cachedAccessories.find(
-                (accessory) => accessory.UUID === device.uuid
-            );
+      fs.writeFileSync(filePath, JSON.stringify(devices, null, 2), 'utf-8'); // Write JSON to file
 
-            if (existingAccessory) {
-                this._platform.log.info(
-                    'Restoring existing accessory from cache:',
-                    existingAccessory.displayName
-                );
-                this.registerCachedAccessory(existingAccessory, device);
-            } else {
-                this._platform.log.info('Adding new accessory:', device.name);
-                existingAccessory = this.registerNewAccessory(device);
-            }
-
-            // Handle multi-outlet and single-outlet devices
-            if (device.type === DeviceType.MultiOutlet && device.children) {
-                createAccessoryForDevice(device, this._platform, existingAccessory, device.children.length);
-            } else {
-                createAccessoryForDevice(device, this._platform, existingAccessory);
-            }
-        }
-
-        this.clearStaleAccessories(
-            this._cachedAccessories.filter((a) => !devices.some((d) => d.uuid === a.UUID))
-        );
-
-        // Export the JSON results
-        await this.exportDevicesToFile(devices);
+      this._platform.log.info(`Devices exported successfully to: ${filePath}`);
+    } catch (error) {
+      this._platform.log.info('Device Response:', JSON.stringify(devices, null, 2));
     }
-
-    private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
-        this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
-
-        for (const accessory of staleAccessories) {
-            const cacheIndex = this._cachedAccessories.findIndex((a) => a.UUID === accessory.UUID);
-
-            if (cacheIndex < 0) continue;
-
-            this._platform.log.info('Removing stale accessory:', accessory.displayName);
-            this._cachedAccessories.splice(cacheIndex, 1);
-        }
-    }
-
-    private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
-        accessory.context.device = device;
-        this._platform.api.updatePlatformAccessories([accessory]);
-    }
-
-    private registerNewAccessory(device: Device): PlatformAccessory {
-        const accessory = new this._platform.api.platformAccessory(device.name, device.uuid);
-        accessory.context.device = device;
-        this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-        return accessory;
-    }
-
-    private async getDevicesForAccount(): Promise<Device[]> {
-        try {
-            const response = await this._httpClient.get<DeviceResponse[]>(
-                `accounts/${this._platform.accountService.accountId}/metadevices`
-            );
-             // Log the full response to inspect the API structure
-            this._platform.log.info('API Response:', JSON.stringify(response.data, null, 2));
-
-            return response.data
-                .map(this.mapDeviceResponseToModel.bind(this))
-                .filter((device): device is Device => !!device); // Filter out undefined devices
-        } catch (ex) {
-            this._platform.log.error('Failed to get devices for account.', (<AxiosError>ex).message);
-            return [];
-        }
-    }
-
-    private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-        // Check if description and device are available in the response
-        if (!response.description || !response.description.device) {
-            this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
-            return undefined;
-        }
-    
-        const type = getDeviceTypeForKey(response.description.device.deviceClass);
-    
-        // If no valid device type is found, skip the device
-        if (!type) {
-            this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
-            return undefined;
-        }
-    
-        // Map the valid response to a Device model
-        return {
-            id: response.id,
-            uuid: this._platform.api.hap.uuid.generate(response.id),
-            deviceId: response.deviceId,
-            name: response.friendlyName,
-            type: type,
-            manufacturer: response.description.device.manufacturerName,
-            model: response.description.device.model.split(',').map((m) => m.trim()),
-            functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-            children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Ensure child devices are valid
-        };
-    }
-    
-
-    private getSupportedFunctionsFromResponse(
-        supportedFunctions: DeviceFunctionResponse[]
-    ): DeviceFunctionResponse[] {
-        const output: DeviceFunctionResponse[] = [];
-
-        for (const df of DeviceFunctions) {
-            const type = supportedFunctions.find(
-                (fc) =>
-                    df.functionInstanceName === fc.functionInstance && df.functionClass === fc.functionClass
-            );
-
-            if (type === undefined || output.indexOf(type) >= 0) continue;
-
-            output.push(type);
-        }
-
-        return output;
-    }
-
-    private async exportDevicesToFile(devices: Device[]): Promise<void> {
-        try {
-            const filePath = path.resolve(__dirname, '../../devices.json'); // Path to save the file
-
-            fs.writeFileSync(filePath, JSON.stringify(devices, null, 2), 'utf-8'); // Write JSON to file
-
-            this._platform.log.info(`Devices exported successfully to: ${filePath}`);
-        } catch (error) {
-            this._platform.log.error('Failed to export devices:', (error as Error).message);
-        }
-    }
+  }
 }
