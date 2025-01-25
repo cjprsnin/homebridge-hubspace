@@ -36,4 +36,5 @@ export interface DeviceFunctionResponse {
   functionInstance: string;
   /** Function values */
   values: DeviceFunctionValues[];
+  outletIndex?: number;  // Add this line if it's a possible property
 }
