@@ -69,8 +69,8 @@ class OutletAccessory extends HubspaceAccessory {
     // Implementation
   }
 
-  protected supportsFunction(functionType: DeviceFunction): boolean {
-    // Implementation
-    return true; // Placeholder
+  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
+    return deviceFunction.type === "power";
   }
+
 }
