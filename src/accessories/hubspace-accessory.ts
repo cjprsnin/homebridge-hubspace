@@ -14,7 +14,27 @@ export abstract class HubspaceAccessory {
   protected readonly config: PlatformConfig;
   protected readonly deviceService: DeviceService;
   protected readonly device: Device;
-  protected supportsFunction: (deviceFunction: DeviceFunction) => boolean;
+  
+  constructor(
+    log: Logger,
+    config: PlatformConfig,
+    deviceService: DeviceService,
+    device: Device
+  ) {
+    this.log = log;
+    this.config = config;
+    this.deviceService = deviceService;
+    this.device = device;
+  }
+
+  /**
+   * Determines if the given device function is supported by the accessory.
+   * Can be overridden by derived classes.
+   */
+  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
+    return false; // Default implementation
+  }
+}
 
   // Define the mapping between DeviceFunction enum and functionClass strings
 private static functionClassMap: Record<DeviceFunction, string> = {
