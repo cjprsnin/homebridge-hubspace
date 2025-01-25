@@ -10,6 +10,8 @@ import { createAccessoryForDevice } from '../accessories/device-accessory-factor
 import { AxiosError } from 'axios';
 import { DeviceFunction, DeviceFunctions } from '../models/device-functions';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Service for discovering and managing devices
@@ -67,6 +69,9 @@ export class DiscoveryService {
         this.clearStaleAccessories(
             this._cachedAccessories.filter((a) => !devices.some((d) => d.uuid === a.UUID))
         );
+
+        // Export the JSON results
+        await this.exportDevicesToFile(devices);
     }
 
     private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
@@ -111,9 +116,9 @@ export class DiscoveryService {
 
     private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
         const type = getDeviceTypeForKey(response.description.device.deviceClass);
-    
+
         if (!type) return undefined;
-    
+
         return {
             id: response.id,
             uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -123,9 +128,10 @@ export class DiscoveryService {
             manufacturer: response.description.device.manufacturerName,
             model: response.description.device.model.split(',').map((m) => m.trim()),
             functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-            children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child) => !!child), // Map child devices
+            children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Type guard to ensure only Device objects remain
         };
     }
+
     private getSupportedFunctionsFromResponse(
         supportedFunctions: DeviceFunctionResponse[]
     ): DeviceFunctionResponse[] {
@@ -143,5 +149,17 @@ export class DiscoveryService {
         }
 
         return output;
+    }
+
+    private async exportDevicesToFile(devices: Device[]): Promise<void> {
+        try {
+            const filePath = path.resolve(__dirname, '../../devices.json'); // Path to save the file
+
+            fs.writeFileSync(filePath, JSON.stringify(devices, null, 2), 'utf-8'); // Write JSON to file
+
+            this._platform.log.info(`Devices exported successfully to: ${filePath}`);
+        } catch (error) {
+            this._platform.log.error('Failed to export devices:', (error as Error).message);
+        }
     }
 }
