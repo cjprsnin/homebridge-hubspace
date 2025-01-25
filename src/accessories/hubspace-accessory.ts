@@ -34,7 +34,7 @@ export abstract class HubspaceAccessory {
   protected supportsFunction(deviceFunction: DeviceFunction): boolean {
     return false; // Default implementation
   }
-
+}
 
   // Define the mapping between DeviceFunction enum and functionClass strings
 private static functionClassMap: Record<DeviceFunction, string> = {
