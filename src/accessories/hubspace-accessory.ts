@@ -69,3 +69,15 @@ export abstract class HubspaceAccessory {
     const staleServices =
       this.accessory.services.slice(1).filter(a => !this.services.some(d => d.UUID === a.UUID && a.displayName === d.displayName));
     for (const staleService of staleServices) {
+      this.accessory.removeService(staleService);
+    }
+  }
+
+  /**
+   * Configures the name for a service
+   */
+  protected configureName(service: Service, name: string): void {
+    service.setCharacteristic(this.platform.Characteristic.Name, name);
+    service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
+  }
+}
