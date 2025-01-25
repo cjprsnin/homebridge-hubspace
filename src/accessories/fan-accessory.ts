@@ -30,7 +30,7 @@ export class FanAccessory extends HubspaceAccessory {
         minStep: 25
       });
   }
-
+  protected supportsFunction: boolean = false;
   private async setActive(value: CharacteristicValue): Promise<void> {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.FanPower);
     await this.deviceService.setValue(this.device.deviceId, func.deviceValues[0].key, value);
