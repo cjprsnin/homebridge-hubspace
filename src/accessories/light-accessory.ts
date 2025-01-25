@@ -1,6 +1,5 @@
 // Updated code to handle the absence of 'values' in DeviceFunctionResponse and improve type safety.
-
-import { DeviceFunctionResponse } from './responses/device-function-response';
+import { DeviceFunctionResponse } from '../responses/device-function-response';
 
 class LightAccessory {
     constructor(private deviceService: DeviceService, private device: Device) {}
