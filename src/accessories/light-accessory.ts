@@ -1,4 +1,4 @@
-import { DeviceFunction, DeviceFunctionResponse } from "../models";
+import { DeviceFunction, DeviceFunctionResponse } from '../models/device-functions';
 import { HubspaceAccessory } from "./hubspace-accessory";
 
 export class LightAccessory extends HubspaceAccessory {
