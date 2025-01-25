@@ -13,6 +13,8 @@ export abstract class HubspaceAccessory {
   protected readonly config: PlatformConfig;
   protected readonly deviceService: DeviceService;
   protected readonly device: Device;
+  protected supportsFunction: boolean; // Change to protected
+
 
   /**
    * Creates new instance of {@link HubspaceAccessory}
