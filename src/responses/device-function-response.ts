@@ -28,6 +28,8 @@ export interface DeviceFunctionValues {
 
 // DeviceFunctionResponse definition
 export interface DeviceFunctionResponse {
+  values: any;
+  functionInstance: import("/vscode-vfs/github+7b2276223a312c22726566223a7b2274797065223a352c226964223a226d6173746572227d7d/cjprsnin/homebridge-hubspace/src/models/device-functions").DeviceFunction;
   functionClass: string;
   functionInstanceName: string;
   deviceValues: DeviceValues[]; // Add this property

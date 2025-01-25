@@ -1,10 +1,9 @@
 import { DeviceFunctionDef } from './device-function-def';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
-import { DeviceValues, ValuesRange } from './responses/device-values'; // Adjust the path to where device-values.ts is located
+
 /**
  * Device functions types
  */
-
 export enum DeviceFunction{
     Power = 'power',
     Brightness = 'brightness',
@@ -91,17 +90,6 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
     }
 ];
 
-export interface DeviceFunctionDef {
-  functionClass: DeviceFunction;
-  functionInstanceName?: DeviceFunction;
-}
-
-export interface DeviceFunctionResponse {
-  functionClass: DeviceFunction;
-  functionInstance?: DeviceFunction;
-  deviceValues: DeviceValues[];  // Now accessible after importing DeviceValues
-  range?: ValuesRange;           // Now accessible after importing ValuesRange
-}
 /**
  * Gets function definition for a type
  * @param deviceFunction Function type

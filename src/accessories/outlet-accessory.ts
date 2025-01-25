@@ -1,7 +1,8 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
-import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { DeviceFunction } from '../models/device-functions';
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
+import { isNullOrUndefined } from '../utils';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
 
 export class DeviceAccessoryFactory {
@@ -60,17 +61,37 @@ class OutletAccessory extends HubspaceAccessory {
     }
   }
 
-  private async getOn(): Promise<CharacteristicValue> {
-    // Implementation
-    return false; // Placeholder
-  }
+  private async getOn(): Promise<CharacteristicValue>{
+    // Try to get the value
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
+    const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.values[0].deviceValues[0].key);
 
-  private async setOn(value: CharacteristicValue): Promise<void> {
-    // Implementation
+    // If the value is not defined then show 'Not Responding'
+    if(isNullOrUndefined(value)){
+        throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    }
+
+    // Otherwise return the value
+    return value!;
+
   }
+     private async getOn(): Promise<CharacteristicValue>{
+        // Try to get the value
+        const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower);
+        const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.values[0].deviceValues[0].key);
+
+        // If the value is not defined then show 'Not Responding'
+        if(isNullOrUndefined(value)){
+            throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+        }
+
+        // Otherwise return the value
+        return value!;
+      }
 
   protected supportsFunction(deviceFunction: DeviceFunction): boolean {
-    return deviceFunction.type === "power";
+    return deviceFunction === DeviceFunction.OutletPower;  // Correct way to compare enums
   }
+  
 
 }

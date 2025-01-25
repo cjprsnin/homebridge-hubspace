@@ -1,18 +1,20 @@
-// src/responses/device-function-response.ts
-import { DeviceFunctionResponse } from './device-functions';
+import { DeviceFunctionResponse } from './device-function-response';
 
-export interface DeviceResponse {
-  id: string;
-  deviceId: string;
-  children: DeviceResponse[];
-  typeId: string;
-  friendlyName: string;
-  description: {
-    device: {
-      manufacturerName: string;
-      model: string;
-      deviceClass: string;
+/**
+ * HTTP response for device discovery
+ */
+export interface DeviceResponse{
+    id: string;
+    deviceId: string;
+    children: DeviceResponse[];
+    typeId: string;
+    friendlyName: string;
+    description: {
+        device: {
+            manufacturerName: string;
+            model: string;
+            deviceClass: string;
+        };
+        functions: DeviceFunctionResponse[];
     };
-    functions: DeviceFunctionResponse[];  // Now works correctly
-  };
 }

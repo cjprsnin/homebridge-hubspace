@@ -29,6 +29,13 @@ export abstract class HubspaceAccessory {
     'light-power': 'Light Power',
     'color-temperature': 'Color Temperature',
     'color-rgb': 'Color RGB',
+    [DeviceFunction.ColorMode]: '',
+    [DeviceFunction.Toggle]: '',
+    [DeviceFunction.MaxOnTime]: '',
+    [DeviceFunction.BatteryLevel]: '',
+    [DeviceFunction.Timer]: '',
+    [DeviceFunction.Spigot1]: '',
+    [DeviceFunction.Spigot2]: ''
   };
 
   constructor(
