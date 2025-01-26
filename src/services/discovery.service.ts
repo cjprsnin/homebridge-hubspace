@@ -167,15 +167,7 @@ export class DiscoveryService {
                 .on('set', (value, callback) => {
                     console.log(`Switch toggled to ${value}`);
                     callback();
-                });
-            
-          
-          switchService.getCharacteristic(Characteristic.On)
-            .on('set', (value, callback) => {
-              console.log(`Switch set to: ${value}`);
-              callback();
-            });
-        
+                });        
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
           this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
