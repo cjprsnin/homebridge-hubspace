@@ -252,3 +252,4 @@ export class DiscoveryService {
       // Handle 'unknown' error type
       if (error instanceof Error) {
         this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
+      }}}}
