@@ -16,7 +16,7 @@ import {
   DeviceFunctionValues,
   ValuesRange,
 } from '../responses/device-function-response';
-
+import * as hap from 'hap-nodejs';
 /**
  * Service for discovering and managing devices
  */
