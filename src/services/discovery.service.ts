@@ -1,4 +1,4 @@
-import { Service, Characteristic } from 'hap-nodejs'; // For working with services from hap-nodejs
+import { Service, Characteristic } from 'hap-nodejs';
 import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
@@ -160,11 +160,11 @@ export class DiscoveryService {
   
         // Adding a switch service to the accessory (Use Service from hap-nodejs)
         const switchService = platformAccessory.addService(
-            Service.Switch, // service type
-            parentDevice.name, // service name
-            parentDevice.uuid // service UUID
-          );
-        switchService.getCharacteristic(Characteristic.on)
+            Service.Switch, 
+            parentDevice.name, 
+            parentDevice.uuid
+        );
+                switchService.getCharacteristic(Characteristic.on)
             .on('set', (value, callback) => {
             console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
             callback();
