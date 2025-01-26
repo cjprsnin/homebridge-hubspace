@@ -45,12 +45,12 @@ export class DiscoveryService {
    */
   async discoverDevices() {
     const devices = await this.getDevicesForAccount();
-
+  
     for (const device of devices) {
       let existingAccessory = this._cachedAccessories.find(
         (accessory) => accessory.UUID === device.uuid
       );
-
+  
       if (existingAccessory) {
         this._platform.log.info(
           'Restoring existing accessory from cache:',
@@ -61,22 +61,29 @@ export class DiscoveryService {
         this._platform.log.info('Adding new accessory:', device.name);
         existingAccessory = this.registerNewAccessory(device);
       }
-
+  
       // Handle multi-outlet and single-outlet devices
       if (device.type === DeviceType.MultiOutlet && device.children) {
         this.handleMultiOutletDevice(device, existingAccessory);
       } else {
+        // Skip parent devices from creating accessories
+        if (device.type === DeviceType.Parent) {
+          this._platform.log.info(`Skipping accessory creation for parent device: ${device.name}`);
+          continue; // Skip the rest of the loop for parent devices
+        }
+        
         createAccessoryForDevice(device, this._platform, existingAccessory);
       }
     }
-
+  
     this.clearStaleAccessories(
       this._cachedAccessories.filter((a) => !devices.some((d) => d.uuid === a.UUID))
     );
-
+  
     // Export the JSON results
     await this.exportDevicesToFile(devices);
   }
+  
 
   private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
     // Ensure that device.children exists before accessing it
