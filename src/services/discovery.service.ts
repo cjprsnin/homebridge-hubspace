@@ -174,6 +174,8 @@ export class DiscoveryService {
         // Explicitly check that children exists and is an array
         if (Array.isArray(parentDevice.children) && parentDevice.children.length > 0) {
           this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
+          // Process as a valid parent device, create an accessory
+          this._platform.api.publishExternalAccessories('homebridge-hubspace', [parentDevice]);
         }
         
         return parentDevice;
