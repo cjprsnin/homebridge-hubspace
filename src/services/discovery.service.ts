@@ -1,4 +1,5 @@
-import { PlatformAccessory, Service, Characteristic } from 'homebridge'; // Correct imports from homebridge
+import { Service, Characteristic } from 'hap-nodejs'; // For working with services from hap-nodejs
+import { PlatformAccessory } from 'homebridge'; // From homebridge for PlatformAccessory
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -153,16 +154,19 @@ export class DiscoveryService {
               .filter((child): child is Device => !!child),
           };
   
-          const platformAccessory = new PlatformAccessory(parentDevice.name, parentDevice.uuid); // Use PlatformAccessory directly
-          platformAccessory.context = { device: parentDevice };
+          // Use PlatformAccessory from Homebridge API context (you may already have this available)
+            const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
+            platformAccessory.context = { device: parentDevice };
   
-          const switchService = platformAccessory.addService(Service.Switch, parentDevice.name);
-            switchService.getCharacteristic(Characteristic.On)
-            .on('set', (value, callback) => {
-            console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
-            callback();
-        });
+        // Adding a switch service to the accessory (Use Service from hap-nodejs)
+        const switchService = platformAccessory.addService(Service.Switch, parentDevice.name);
 
+        // Set characteristic for On/Off toggle functionality
+        switchService.getCharacteristic(Characteristic.On)
+        .on('set', (value, callback) => {
+         console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
+            callback();
+         });
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
           this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
