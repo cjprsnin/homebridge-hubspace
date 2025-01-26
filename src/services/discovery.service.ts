@@ -64,7 +64,7 @@ export class DiscoveryService {
 
       // Handle multi-outlet and single-outlet devices
       if (device.type === DeviceType.MultiOutlet && device.children) {
-        createAccessoryForDevice(device, this._platform, existingAccessory, device.children.length);
+        this.handleMultiOutletDevice(device, existingAccessory);
       } else {
         createAccessoryForDevice(device, this._platform, existingAccessory);
       }
@@ -77,6 +77,20 @@ export class DiscoveryService {
     // Export the JSON results
     await this.exportDevicesToFile(devices);
   }
+
+  private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
+    // Ensure that device.children exists before accessing it
+    if (device.children && device.children.length > 0) {
+      // For each outlet (child), create an accessory
+      device.children.forEach((childDevice, index) => {
+        this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
+        createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children.length);
+      });
+    } else {
+      this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
+    }
+  }
+  
 
   private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
     this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
@@ -196,6 +210,31 @@ export class DiscoveryService {
       this._platform.log.info(`Devices exported successfully to: ${filePath}`);
     } catch (error) {
       this._platform.log.info('Device Response:', JSON.stringify(devices, null, 2));
+    }
+  }
+
+  /**
+   * Function to toggle device On/Off state
+   * @param device The device to toggle the state for
+   * @param state The desired state (true for ON, false for OFF)
+   */
+  async toggleDeviceState(device: Device, state: boolean): Promise<void> {
+    try {
+      const action = state ? 'on' : 'off';
+      const response = await this._httpClient.post(
+        `${Endpoints.API_BASE_URL}/devices/${device.deviceId}/state`,
+        {
+          state: action, // Either 'on' or 'off'
+        }
+      );
+
+      if (response.status === 200) {
+        this._platform.log.info(`Device ${device.name} is now turned ${action}.`);
+      } else {
+        this._platform.log.warn(`Failed to toggle device ${device.name} to ${action}.`);
+      }
+    } catch (error) {
+      this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
     }
   }
 }

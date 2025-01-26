@@ -1,20 +1,37 @@
-import { DeviceFunctionResponse } from './device-function-response';
+export interface DeviceFunctionResponse {
+    id: string; // Unique function identifier
+    functionClass: string; // Type of function (toggle, timer, power, etc.)
+    functionInstance: string; // Instance (e.g., outlet-1, outlet-2, etc.)
+    type: string; // Category or type (e.g., category, numeric)
+    schedulable: boolean; // Whether this function can be scheduled
+    values: DeviceFunctionValue[]; // Values associated with the function
+}
 
-/**
- * HTTP response for device discovery
- */
+export interface DeviceFunctionValue {
+    id: string;
+    name: string; // e.g., "on", "off"
+    deviceValues: DeviceValue[];
+    range: Range | {}; // Timer or power range
+}
+
+export interface DeviceValue {
+    id: string;
+    key: string; // Attribute key (e.g., "1" for on/off state)
+    value: string; // Value (e.g., "0" or "1" for off/on)
+}
+
 export interface DeviceResponse {
-    id: string; // Unique device identifier
-    deviceId: string; // The device's specific identifier
-    typeId: string; // Type ID of the device
-    friendlyName: string; // Human-readable name of the device
+    id: string;
+    deviceId: string;
+    typeId: string;
+    friendlyName: string;
     description: {
         device: {
-            manufacturerName: string; // Manufacturer name
-            model: string; // Model information (could be a string or array)
-            deviceClass: string; // Class/type of the device (e.g., power-outlet, light)
+            manufacturerName: string;
+            model: string;
+            deviceClass: string;
         };
-        functions: DeviceFunctionResponse[]; // List of functions available for the device
+        functions: DeviceFunctionResponse[];
     };
-    children?: DeviceResponse[]; // Optional field to handle child devices (nested devices)
+    children?: DeviceResponse[]; // Children devices (outlets) will be added here
 }
