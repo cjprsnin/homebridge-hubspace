@@ -1,4 +1,4 @@
-import { PlatformAccessory } from 'homebridge';
+import { PlatformAccessory, Service, Characteristic } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -167,16 +167,26 @@ export class DiscoveryService {
               deviceValues: [], // Empty device values
             }
           ],
-          children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map children, ensuring it's never undefined
+          children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map children
             .filter((child): child is Device => !!child),  // Filter out invalid children
         };
-        
-        // Explicitly check that children exists and is an array
-        if (Array.isArray(parentDevice.children) && parentDevice.children.length > 0) {
-          this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
-          // Process as a valid parent device, create an accessory
-          this._platform.api.publishExternalAccessories('homebridge-hubspace', [parentDevice]);
-        }
+  
+        // Create PlatformAccessory from the parent device object
+        const platformAccessory = new PlatformAccessory(parentDevice.name, parentDevice.uuid);
+        platformAccessory.context = { device: parentDevice };
+  
+        // Add services to the accessory if needed (example: creating a switch service)
+        const switchService = platformAccessory.addService(Service.Switch, parentDevice.name);
+        switchService.getCharacteristic(Characteristic.On)
+          .on('set', (value, callback) => {
+            // Implement toggle functionality (example)
+            console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
+            callback();
+          });
+  
+        // Add the accessory to the platform
+        this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
+        this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
         
         return parentDevice;
       }
@@ -210,7 +220,6 @@ export class DiscoveryService {
         .filter((child): child is Device => !!child),  // Filter out invalid children
     };
   }
-  
   
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
