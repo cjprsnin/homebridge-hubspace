@@ -139,12 +139,12 @@ export class DiscoveryService {
   }
 
   private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-    // If there's no description, but the device has children, treat it as a parent device
+    // Check if the device is a parent device with children but missing description
     if (!response.description || !response.description.device) {
       if (response.children && response.children.length > 0) {
         // Process as a parent device with children
         this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
-        return {
+        const parentDevice: Device = {
           id: response.id,
           uuid: this._platform.api.hap.uuid.generate(response.id),
           deviceId: response.deviceId,
@@ -154,22 +154,24 @@ export class DiscoveryService {
           model: ['Unknown'], // Fallback model name
           functions: [
             {
-              functionInstance: 'toggle', // A default toggle function
+              functionInstance: 'toggle', // Default toggle function
               functionClass: 'toggle',  // The class for toggle functionality
               values: [], // Empty values for simplicity
               deviceValues: [], // Empty device values
             },
             {
-              functionInstance: 'timer', // A default timer function
+              functionInstance: 'timer', // Default timer function
               functionClass: 'timer',  // The class for timer functionality
               values: [], // Empty values for simplicity
               deviceValues: [], // Empty device values
             }
           ],
           children: response.children
-            .map(this.mapDeviceResponseToModel.bind(this))
-            .filter((child): child is Device => !!child), // Ensure valid children
+            .map(this.mapDeviceResponseToModel.bind(this)) // Recursively map children
+            .filter((child): child is Device => !!child),  // Filter out invalid children
         };
+        this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
+        return parentDevice;
       }
       // If the device has neither description nor children, skip it
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
@@ -182,6 +184,9 @@ export class DiscoveryService {
       this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
       return undefined;
     }
+  
+    // Log the type to verify it
+    this._platform.log.info(`Mapped device ${response.friendlyName} of type ${type}:`, response);
   
     // Return the mapped device with its functions
     return {
