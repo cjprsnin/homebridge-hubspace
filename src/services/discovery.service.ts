@@ -243,4 +243,4 @@ async toggleDeviceState(device: Device, state: boolean): Promise<void> {
         this._platform.log.error(`Error toggling device ${device.name}: Unknown error`);
       }
     }
-}
+}}
