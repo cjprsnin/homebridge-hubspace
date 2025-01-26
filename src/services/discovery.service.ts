@@ -167,13 +167,12 @@ export class DiscoveryService {
               deviceValues: [], // Empty device values
             }
           ],
-          children: (response.children ?? []) // Use nullish coalescing to fallback to empty array
-            .map(this.mapDeviceResponseToModel.bind(this)) // Recursively map children
+          children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map children, ensuring it's never undefined
             .filter((child): child is Device => !!child),  // Filter out invalid children
         };
         
-        // If children were created, process them as accessories
-        if (parentDevice.children.length > 0) {
+        // Explicitly check that children exists and is an array
+        if (Array.isArray(parentDevice.children) && parentDevice.children.length > 0) {
           this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
         }
         
@@ -205,11 +204,11 @@ export class DiscoveryService {
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
       functions: this.getSupportedFunctionsFromResponse(response.description.functions), // Mapping functions
-      children: (response.children ?? []) // Use nullish coalescing to fallback to empty array
-        .map(this.mapDeviceResponseToModel.bind(this)) // Recursively map child devices
+      children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
         .filter((child): child is Device => !!child),  // Filter out invalid children
     };
   }
+  
   
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
