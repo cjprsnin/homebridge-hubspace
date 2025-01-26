@@ -1,4 +1,4 @@
-import { Service, Characteristic } from 'hap-nodejs';
+import { PlatformAccessory, Service, Characteristic } from 'hap-nodejs'; // Direct import of PlatformAccessory
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -28,7 +28,7 @@ export class DiscoveryService {
     },
   });
 
-  private _cachedAccessories: any[] = [];
+  private _cachedAccessories: PlatformAccessory[] = [];
 
   constructor(private readonly _platform: HubspacePlatform) {}
 
@@ -36,7 +36,7 @@ export class DiscoveryService {
    * Receives accessory that has been cached by Homebridge
    * @param accessory Cached accessory
    */
-  configureCachedAccessory(accessory: any): void {
+  configureCachedAccessory(accessory: PlatformAccessory): void {
     this._cachedAccessories.push(accessory);
   }
 
@@ -84,7 +84,7 @@ export class DiscoveryService {
     await this.exportDevicesToFile(devices);
   }
 
-  private handleMultiOutletDevice(device: Device, existingAccessory: any) {
+  private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
     if (device.children && device.children.length > 0) {
       device.children.forEach((childDevice, index) => {
         this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
@@ -95,7 +95,7 @@ export class DiscoveryService {
     }
   }
 
-  private clearStaleAccessories(staleAccessories: any[]): void {
+  private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
     this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
 
     for (const accessory of staleAccessories) {
@@ -108,13 +108,12 @@ export class DiscoveryService {
     }
   }
 
-  private registerCachedAccessory(accessory: any, device: Device): void {
+  private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
     accessory.context.device = device;
     this._platform.api.updatePlatformAccessories([accessory]);
   }
 
-  private registerNewAccessory(device: Device): any {
-    const PlatformAccessory = this._platform.api.hap.PlatformAccessory;
+  private registerNewAccessory(device: Device): PlatformAccessory {
     const accessory = new PlatformAccessory(device.name, device.uuid);
     accessory.context.device = device;
     this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -165,7 +164,6 @@ export class DiscoveryService {
             .filter((child): child is Device => !!child),
         };
 
-        const PlatformAccessory = this._platform.api.hap.PlatformAccessory;
         const platformAccessory = new PlatformAccessory(parentDevice.name, parentDevice.uuid);
         platformAccessory.context = { device: parentDevice };
 
