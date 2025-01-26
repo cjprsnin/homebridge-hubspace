@@ -6,7 +6,8 @@ export enum DeviceType {
     Fan = 'fan',
     Outlet = 'power-outlet',
     Sprinkler = 'sprinkler',
-    MultiOutlet = "multi-outlet-accessory"
+    MultiOutlet = "multi-outlet-accessory",
+    Parent = 'parent',  // Add this line for parent devices
 }
 
 /**

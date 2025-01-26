@@ -123,33 +123,46 @@ export class DiscoveryService {
       const response = await this._httpClient.get<DeviceResponse[]>(
         `accounts/${this._platform.accountService.accountId}/metadevices`
       );
-
+  
       return response.data
         .map(this.mapDeviceResponseToModel.bind(this))
-        .filter((device: any): device is Device => !!device); // Filter out undefined devices
+        .filter((device): device is Device => !!device); // Filter out undefined devices
     } catch (ex) {
       this._platform.log.error('Failed to get devices for account.', (<AxiosError>ex).message);
       return [];
     }
   }
+  
 
   private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-    // Check if description and device are available in the response
+    // If there's no description, but the device has children, proceed
     if (!response.description || !response.description.device) {
+      if (response.children && response.children.length > 0) {
+        // Handle as a parent device with children, skipping description/device check
+        this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
+        return {
+            id: response.id,
+            uuid: this._platform.api.hap.uuid.generate(response.id),
+            deviceId: response.deviceId,
+            name: response.friendlyName,
+            type: DeviceType.Parent, // Now valid, since it's in the enum
+            manufacturer: 'Unknown', // Fallback to default values
+            model: ['Unknown'],
+            children: response.children.map(this.mapDeviceResponseToModel.bind(this)), // Map child devices
+          };
+          
+      }
+  
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
-      this._platform.log.debug('Device Response:', response);  // Log full response for debugging
       return undefined;
     }
   
     const type = getDeviceTypeForKey(response.description.device.deviceClass);
-  
-    // If no valid device type is found, skip the device
     if (!type) {
       this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
       return undefined;
     }
   
-    // Map the valid response to a Device model
     return {
       id: response.id,
       uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -159,7 +172,7 @@ export class DiscoveryService {
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
       functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-      children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Ensure child devices are valid
+      children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child),
     };
   }
   
