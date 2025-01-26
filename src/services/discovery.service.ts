@@ -138,17 +138,18 @@ export class DiscoveryService {
         // Handle as a parent device with children, skipping description/device check
         this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
         return {
-            id: response.id,
-            uuid: this._platform.api.hap.uuid.generate(response.id),
-            deviceId: response.deviceId,
-            name: response.friendlyName,
-            type: DeviceType.Parent, // Now valid, since it's in the enum
-            manufacturer: 'Unknown', // Fallback to default values
-            model: ['Unknown'],
-            children: response.children
-              .map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
-              .filter((child): child is Device => !!child), // Filter out undefined values
-          };
+          id: response.id,
+          uuid: this._platform.api.hap.uuid.generate(response.id),
+          deviceId: response.deviceId,
+          name: response.friendlyName,
+          type: DeviceType.Parent, // Now valid, since it's in the enum
+          manufacturer: 'Unknown', // Fallback to default values
+          model: ['Unknown'],
+          functions: [], // Provide an empty array for functions on the parent device
+          children: response.children
+            .map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
+            .filter((child): child is Device => !!child), // Filter out undefined values
+        };
       }
   
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
@@ -175,6 +176,7 @@ export class DiscoveryService {
         .filter((child): child is Device => !!child),  // Filter out undefined values
     };
   }
+  
 
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
