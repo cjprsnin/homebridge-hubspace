@@ -158,12 +158,17 @@ export class DiscoveryService {
             const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
             platformAccessory.context = { device: parentDevice };
   
-        // Adding a switch service to the accessory (Use Service from hap-nodejs)
-        const switchService = platformAccessory.addService(
-            Service.Switch, // Type of service
-            parentDevice.name, // Name of the service
-            parentDevice.uuid // Unique ID for the service
-          );
+            const switchService = platformAccessory.addService(
+                new hap.Service.Switch(parentDevice.name, parentDevice.uuid)
+            );
+            
+            switchService
+                .getCharacteristic(hap.Characteristic.On)
+                .on('set', (value, callback) => {
+                    console.log(`Switch toggled to ${value}`);
+                    callback();
+                });
+            
           
           switchService.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
