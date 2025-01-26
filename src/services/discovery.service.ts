@@ -1,4 +1,5 @@
-import { PlatformAccessory, Service, Characteristic } from 'homebridge';
+import { PlatformAccessory as Service, Characteristic } from 'homebridge'; // Import types for Service and Characteristic
+import { PlatformAccessory } from 'hap-nodejs'; // Import actual class for PlatformAccessory
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -103,7 +104,7 @@ export class DiscoveryService {
     }
   
     private registerNewAccessory(device: Device): any {
-      const accessory = new PlatformAccessory(device.name, device.uuid); // Use PlatformAccessory directly from homebridge
+      const accessory = new PlatformAccessory(device.name, device.uuid); // Use PlatformAccessory directly from hap-nodejs
       accessory.context.device = device;
       this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       return accessory;
