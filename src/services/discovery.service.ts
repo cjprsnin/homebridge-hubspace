@@ -97,7 +97,7 @@ export class DiscoveryService {
       this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
     }
   }
-
+ 
   private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
     this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
 
@@ -139,36 +139,51 @@ export class DiscoveryService {
   }
 
   private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-    // If there's no description, but the device has children, proceed
+    // If there's no description, but the device has children, treat it as a parent device
     if (!response.description || !response.description.device) {
       if (response.children && response.children.length > 0) {
-        // Handle as a parent device with children, skipping description/device check
+        // Process as a parent device with children
         this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
         return {
           id: response.id,
           uuid: this._platform.api.hap.uuid.generate(response.id),
           deviceId: response.deviceId,
           name: response.friendlyName,
-          type: DeviceType.Parent, // Now valid, since it's in the enum
-          manufacturer: 'Unknown', // Fallback to default values
-          model: ['Unknown'],
-          functions: [], // Provide an empty array for functions on the parent device
+          type: DeviceType.Parent, // Set device type to Parent
+          manufacturer: 'Unknown', // Fallback manufacturer name
+          model: ['Unknown'], // Fallback model name
+          functions: [
+            {
+              functionInstance: 'toggle', // A default toggle function
+              functionClass: 'toggle',  // The class for toggle functionality
+              values: [], // Empty values for simplicity
+              deviceValues: [], // Empty device values
+            },
+            {
+              functionInstance: 'timer', // A default timer function
+              functionClass: 'timer',  // The class for timer functionality
+              values: [], // Empty values for simplicity
+              deviceValues: [], // Empty device values
+            }
+          ],
           children: response.children
-            .map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
-            .filter((child): child is Device => !!child), // Filter out undefined values
+            .map(this.mapDeviceResponseToModel.bind(this))
+            .filter((child): child is Device => !!child), // Ensure valid children
         };
       }
-  
+      // If the device has neither description nor children, skip it
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
       return undefined;
     }
   
+    // If there's a valid description, map the device normally
     const type = getDeviceTypeForKey(response.description.device.deviceClass);
     if (!type) {
       this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
       return undefined;
     }
   
+    // Return the mapped device with its functions
     return {
       id: response.id,
       uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -177,10 +192,10 @@ export class DiscoveryService {
       type: type,
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
-      functions: this.getSupportedFunctionsFromResponse(response.description.functions),
+      functions: this.getSupportedFunctionsFromResponse(response.description.functions), // Mapping functions
       children: response.children
-        ?.map(this.mapDeviceResponseToModel.bind(this))  // Map child devices
-        .filter((child): child is Device => !!child),  // Filter out undefined values
+        ?.map(this.mapDeviceResponseToModel.bind(this)) // Recursively map child devices
+        .filter((child): child is Device => !!child),  // Filter out invalid children
     };
   }
   
@@ -213,6 +228,8 @@ export class DiscoveryService {
       range: this.mapRange(value.range), // Map the range if available
     }));
   }
+
+  
 
   private mapRange(range: any): ValuesRange {
     if (range && range.min !== undefined && range.max !== undefined && range.step !== undefined) {
