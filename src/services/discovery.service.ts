@@ -1,4 +1,4 @@
-import { PlatformAccessory, Service, Characteristic } from 'hap-nodejs';
+import { Service, Characteristic } from 'hap-nodejs';
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -28,7 +28,7 @@ export class DiscoveryService {
     },
   });
 
-  private _cachedAccessories: PlatformAccessory[] = [];
+  private _cachedAccessories: any[] = [];
 
   constructor(private readonly _platform: HubspacePlatform) {}
 
@@ -36,7 +36,7 @@ export class DiscoveryService {
    * Receives accessory that has been cached by Homebridge
    * @param accessory Cached accessory
    */
-  configureCachedAccessory(accessory: PlatformAccessory): void {
+  configureCachedAccessory(accessory: any): void {
     this._cachedAccessories.push(accessory);
   }
 
@@ -83,12 +83,9 @@ export class DiscoveryService {
     // Export the JSON results
     await this.exportDevicesToFile(devices);
   }
-  
 
-  private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
-    // Ensure that device.children exists before accessing it
+  private handleMultiOutletDevice(device: Device, existingAccessory: any) {
     if (device.children && device.children.length > 0) {
-      // For each outlet (child), create an accessory
       device.children.forEach((childDevice, index) => {
         this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
         createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children?.length ?? 0);
@@ -97,8 +94,8 @@ export class DiscoveryService {
       this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
     }
   }
- 
-  private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
+
+  private clearStaleAccessories(staleAccessories: any[]): void {
     this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
 
     for (const accessory of staleAccessories) {
@@ -111,13 +108,14 @@ export class DiscoveryService {
     }
   }
 
-  private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
+  private registerCachedAccessory(accessory: any, device: Device): void {
     accessory.context.device = device;
     this._platform.api.updatePlatformAccessories([accessory]);
   }
 
-  private registerNewAccessory(device: Device): PlatformAccessory {
-    const accessory = new this._platform.api.platformAccessory(device.name, device.uuid);
+  private registerNewAccessory(device: Device): any {
+    const PlatformAccessory = this._platform.api.hap.PlatformAccessory;
+    const accessory = new PlatformAccessory(device.name, device.uuid);
     accessory.context.device = device;
     this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     return accessory;
@@ -139,74 +137,61 @@ export class DiscoveryService {
   }
 
   private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-    // Check if the device is a parent device with children but missing description
     if (!response.description || !response.description.device) {
       if (response.children && response.children.length > 0) {
-        // Process as a parent device with children
-        this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
-        
         const parentDevice: Device = {
           id: response.id,
           uuid: this._platform.api.hap.uuid.generate(response.id),
           deviceId: response.deviceId,
           name: response.friendlyName,
           type: DeviceType.Parent, // Set device type to Parent
-          manufacturer: 'Unknown', // Fallback manufacturer name
-          model: ['Unknown'], // Fallback model name
+          manufacturer: 'Unknown',
+          model: ['Unknown'],
           functions: [
             {
-              functionInstance: 'toggle', // Default toggle function
-              functionClass: 'toggle',  // The class for toggle functionality
-              values: [], // Empty values for simplicity
-              deviceValues: [], // Empty device values
+              functionInstance: 'toggle',
+              functionClass: 'toggle',
+              values: [],
+              deviceValues: [],
             },
             {
-              functionInstance: 'timer', // Default timer function
-              functionClass: 'timer',  // The class for timer functionality
-              values: [], // Empty values for simplicity
-              deviceValues: [], // Empty device values
+              functionInstance: 'timer',
+              functionClass: 'timer',
+              values: [],
+              deviceValues: [],
             }
           ],
-          children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map children
-            .filter((child): child is Device => !!child),  // Filter out invalid children
+          children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this))
+            .filter((child): child is Device => !!child),
         };
-  
-        // Create PlatformAccessory from the parent device object
-        const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
+
+        const PlatformAccessory = this._platform.api.hap.PlatformAccessory;
+        const platformAccessory = new PlatformAccessory(parentDevice.name, parentDevice.uuid);
         platformAccessory.context = { device: parentDevice };
-  
-        // Add services to the accessory if needed (example: creating a switch service)
+
         const switchService = platformAccessory.addService(Service.Switch, parentDevice.name);
         switchService.getCharacteristic(Characteristic.On)
           .on('set', (value, callback) => {
-            // Implement toggle functionality (example)
             console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
             callback();
           });
-  
-        // Add the accessory to the platform
+
         this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
         this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
         
         return parentDevice;
       }
       
-      // If no description and no children, skip the device
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
       return undefined;
     }
   
-    // If there's a valid description, map the device normally
     const type = getDeviceTypeForKey(response.description.device.deviceClass);
     if (!type) {
       this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
       return undefined;
     }
   
-    // Log the type to verify it
-    this._platform.log.info(`Mapped device ${response.friendlyName} of type ${type}:`, response);
-  
-    // Return the mapped device with its functions
     return {
       id: response.id,
       uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -215,12 +200,12 @@ export class DiscoveryService {
       type: type,
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
-      functions: this.getSupportedFunctionsFromResponse(response.description.functions), // Mapping functions
-      children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
-        .filter((child): child is Device => !!child),  // Filter out invalid children
+      functions: this.getSupportedFunctionsFromResponse(response.description.functions),
+      children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this))
+        .filter((child): child is Device => !!child),
     };
   }
-  
+
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
 
@@ -229,8 +214,8 @@ export class DiscoveryService {
         const functionResponse: DeviceFunctionResponse = {
           functionInstance: func.id,
           functionClass: func.functionClass,
-          values: this.mapFunctionValues(func.values), // Map values to the correct structure
-          deviceValues: func.deviceValues || [], // If deviceValues exist, include them
+          values: this.mapFunctionValues(func.values),
+          deviceValues: func.deviceValues || [],
         };
         output.push(functionResponse);
       }
@@ -243,7 +228,7 @@ export class DiscoveryService {
     return values.map((value) => ({
       name: value.name,
       deviceValues: value.deviceValues || [],
-      range: value.range || {} as ValuesRange, 
+      range: value.range || {} as ValuesRange,
     }));
   }
 
