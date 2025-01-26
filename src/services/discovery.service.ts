@@ -1,5 +1,4 @@
-import { PlatformAccessory as Service, Characteristic } from 'homebridge'; // Import types for Service and Characteristic
-import { PlatformAccessory } from 'hap-nodejs'; // Import actual class for PlatformAccessory
+import { PlatformAccessory, Service, Characteristic } from 'homebridge'; // Correct imports from homebridge
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -158,11 +157,12 @@ export class DiscoveryService {
           platformAccessory.context = { device: parentDevice };
   
           const switchService = platformAccessory.addService(Service.Switch, parentDevice.name);
-          switchService.getCharacteristic(Characteristic.On)
+            switchService.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
-              console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
-              callback();
-            });
+            console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
+            callback();
+        });
+
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
           this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
