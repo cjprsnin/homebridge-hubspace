@@ -137,17 +137,18 @@ export class DiscoveryService {
     // Check if description and device are available in the response
     if (!response.description || !response.description.device) {
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
+      this._platform.log.debug('Device Response:', response);  // Log full response for debugging
       return undefined;
     }
-
+  
     const type = getDeviceTypeForKey(response.description.device.deviceClass);
-
+  
     // If no valid device type is found, skip the device
     if (!type) {
       this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
       return undefined;
     }
-
+  
     // Map the valid response to a Device model
     return {
       id: response.id,
@@ -161,6 +162,7 @@ export class DiscoveryService {
       children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child), // Ensure child devices are valid
     };
   }
+  
 
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
