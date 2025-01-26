@@ -160,9 +160,9 @@ export class DiscoveryService {
   
         // Adding a switch service to the accessory (Use Service from hap-nodejs)
         const switchService = platformAccessory.addService(
-            Service.Switch, // Service type
-            'Switch Name',  // Display name
-            'unique-switch-id' // Optional UUID for the service
+            Service.Switch, // Type of service
+            parentDevice.name, // Name of the service
+            parentDevice.uuid // Unique ID for the service
           );
           
           switchService.getCharacteristic(Characteristic.On)
