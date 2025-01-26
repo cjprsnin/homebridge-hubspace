@@ -144,6 +144,7 @@ export class DiscoveryService {
       if (response.children && response.children.length > 0) {
         // Process as a parent device with children
         this._platform.log.warn(`Device ${response.id} lacks description, but has children.`);
+        
         const parentDevice: Device = {
           id: response.id,
           uuid: this._platform.api.hap.uuid.generate(response.id),
@@ -166,14 +167,20 @@ export class DiscoveryService {
               deviceValues: [], // Empty device values
             }
           ],
-          children: response.children
+          children: (response.children ?? []) // Use nullish coalescing to fallback to empty array
             .map(this.mapDeviceResponseToModel.bind(this)) // Recursively map children
             .filter((child): child is Device => !!child),  // Filter out invalid children
         };
-        this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
+        
+        // If children were created, process them as accessories
+        if (parentDevice.children.length > 0) {
+          this._platform.log.info(`Parent device created for ${response.friendlyName}:`, parentDevice);
+        }
+        
         return parentDevice;
       }
-      // If the device has neither description nor children, skip it
+      
+      // If no description and no children, skip the device
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
       return undefined;
     }
@@ -198,13 +205,12 @@ export class DiscoveryService {
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
       functions: this.getSupportedFunctionsFromResponse(response.description.functions), // Mapping functions
-      children: response.children
-        ?.map(this.mapDeviceResponseToModel.bind(this)) // Recursively map child devices
+      children: (response.children ?? []) // Use nullish coalescing to fallback to empty array
+        .map(this.mapDeviceResponseToModel.bind(this)) // Recursively map child devices
         .filter((child): child is Device => !!child),  // Filter out invalid children
     };
   }
   
-
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
 
