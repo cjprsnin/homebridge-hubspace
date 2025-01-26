@@ -159,15 +159,15 @@ export class DiscoveryService {
             platformAccessory.context = { device: parentDevice };
   
             const switchService = platformAccessory.addService(
-                new hap.Service.Switch(parentDevice.name, parentDevice.uuid)
+                new hap.Service.Switch(parentDevice.name, parentDevice.uuid) as hap.Service
             );
             
             switchService
-                .getCharacteristic(hap.Characteristic.On)
+                .getCharacteristic(hap.Characteristic.On as hap.Characteristic)
                 .on('set', (value, callback) => {
                     console.log(`Switch toggled to ${value}`);
                     callback();
-                });        
+                });       
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
           this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
