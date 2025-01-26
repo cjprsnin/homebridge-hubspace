@@ -85,13 +85,11 @@ export class DiscoveryService {
       device.children.forEach((childDevice, index) => {
         this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
         createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children?.length ?? 0);
-
       });
     } else {
       this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
     }
   }
-  
 
   private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
     this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
@@ -132,7 +130,6 @@ export class DiscoveryService {
       return [];
     }
   }
-  
 
   private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
     // If there's no description, but the device has children, proceed
@@ -148,9 +145,10 @@ export class DiscoveryService {
             type: DeviceType.Parent, // Now valid, since it's in the enum
             manufacturer: 'Unknown', // Fallback to default values
             model: ['Unknown'],
-            children: response.children.map(this.mapDeviceResponseToModel.bind(this)), // Map child devices
+            children: response.children
+              .map(this.mapDeviceResponseToModel.bind(this)) // Map child devices
+              .filter((child): child is Device => !!child), // Filter out undefined values
           };
-          
       }
   
       this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
@@ -172,10 +170,11 @@ export class DiscoveryService {
       manufacturer: response.description.device.manufacturerName,
       model: response.description.device.model.split(',').map((m) => m.trim()),
       functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-      children: response.children?.map(this.mapDeviceResponseToModel.bind(this)).filter((child): child is Device => !!child),
+      children: response.children
+        ?.map(this.mapDeviceResponseToModel.bind(this))  // Map child devices
+        .filter((child): child is Device => !!child),  // Filter out undefined values
     };
   }
-  
 
   private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
     const output: DeviceFunctionResponse[] = [];
@@ -234,8 +233,7 @@ export class DiscoveryService {
    * @param device The device to toggle the state for
    * @param state The desired state (true for ON, false for OFF)
    */
-// Function to toggle device On/Off state
-async toggleDeviceState(device: Device, state: boolean): Promise<void> {
+  async toggleDeviceState(device: Device, state: boolean): Promise<void> {
     try {
       const action = state ? 'on' : 'off';
       const response = await this._httpClient.post(
@@ -254,8 +252,3 @@ async toggleDeviceState(device: Device, state: boolean): Promise<void> {
       // Handle 'unknown' error type
       if (error instanceof Error) {
         this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
-      } else {
-        this._platform.log.error(`Error toggling device ${device.name}: Unknown error`);
-      }
-    }
-}}
