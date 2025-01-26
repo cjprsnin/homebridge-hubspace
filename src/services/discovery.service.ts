@@ -1,5 +1,5 @@
 import { Service, Characteristic } from "hap-nodejs";
-import { PlatformAccessory } from 'homebridge/lib/platformAccessory';
+import { PlatformAccessory } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -17,6 +17,7 @@ import {
   ValuesRange,
 } from '../responses/device-function-response';
 import * as hap from 'hap-nodejs';
+
 /**
  * Service for discovering and managing devices
  */
@@ -28,11 +29,11 @@ export class DiscoveryService {
       },
     });
   
-    private _cachedAccessories: any[] = [];
+    private _cachedAccessories: PlatformAccessory[] = [];
   
     constructor(private readonly _platform: HubspacePlatform) {}
   
-    configureCachedAccessory(accessory: any): void {
+    configureCachedAccessory(accessory: PlatformAccessory): void {
       this._cachedAccessories.push(accessory);
     }
   
@@ -74,7 +75,7 @@ export class DiscoveryService {
       await this.exportDevicesToFile(devices);
     }
   
-    private handleMultiOutletDevice(device: Device, existingAccessory: any) {
+    private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
       if (device.children && device.children.length > 0) {
         device.children.forEach((childDevice, index) => {
           this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
@@ -85,7 +86,7 @@ export class DiscoveryService {
       }
     }
   
-    private clearStaleAccessories(staleAccessories: any[]): void {
+    private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
       this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
   
       for (const accessory of staleAccessories) {
@@ -98,16 +99,17 @@ export class DiscoveryService {
       }
     }
   
-    private registerCachedAccessory(accessory: any, device: Device): void {
+    private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
       accessory.context.device = device;
       this._platform.api.updatePlatformAccessories([accessory]);
     }
   
-    private registerNewAccessory(device: Device): any {
-      const accessory = new PlatformAccessory(device.name, device.uuid); // Use PlatformAccessory directly from hap-nodejs
-      accessory.context.device = device;
-      this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      return accessory;
+    private registerNewAccessory(device: Device): PlatformAccessory {
+        const accessory = new PlatformAccessory(device.name, device.uuid);
+        accessory.context.device = device;
+        this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        this._platform.log.info('Registered new accessory:', accessory.displayName);
+        return accessory;
     }
   
     private async getDevicesForAccount(): Promise<Device[]> {
@@ -154,20 +156,20 @@ export class DiscoveryService {
               .filter((child): child is Device => !!child),
           };
   
-          // Use PlatformAccessory from Homebridge API context (you may already have this available)
-            const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
-            platformAccessory.context = { device: parentDevice };
+          // Use PlatformAccessory from Homebridge API context
+          const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
+          platformAccessory.context = { device: parentDevice };
   
-            const switchService = platformAccessory.addService(
-                new (hap.Service as any).Switch(parentDevice.name, parentDevice.uuid)
-            );
-            
-            switchService
-                .getCharacteristic(hap.Characteristic.On as any)
-                .on('set', (value, callback) => {
-                    console.log(`Switch toggled to ${value}`);
-                    callback();
-                });
+          const switchService = platformAccessory.addService(
+              new hap.Service.Switch(parentDevice.name, parentDevice.uuid)
+          );
+          
+          switchService
+              .getCharacteristic(hap.Characteristic.On)
+              .on('set', (value, callback) => {
+                  console.log(`Switch toggled to ${value}`);
+                  callback();
+              });
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
           this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
@@ -230,4 +232,4 @@ export class DiscoveryService {
       fs.writeFileSync(filePath, JSON.stringify(devices, null, 2));
       this._platform.log.info(`Devices exported to file: ${filePath}`);
     }
-  }
+}
