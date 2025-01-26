@@ -1,4 +1,4 @@
-import { PlatformAccessory, Service, Characteristic } from 'homebridge';
+import { PlatformAccessory, Service, Characteristic } from 'hap-nodejs';
 import { HubspacePlatform } from '../platform';
 import { DeviceResponse } from '../responses/devices-response';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
@@ -172,7 +172,7 @@ export class DiscoveryService {
         };
   
         // Create PlatformAccessory from the parent device object
-        const platformAccessory = new PlatformAccessory(parentDevice.name, parentDevice.uuid);
+        const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
         platformAccessory.context = { device: parentDevice };
   
         // Add services to the accessory if needed (example: creating a switch service)
@@ -242,61 +242,14 @@ export class DiscoveryService {
   private mapFunctionValues(values: any[]): DeviceFunctionValues[] {
     return values.map((value) => ({
       name: value.name,
-      deviceValues: value.deviceValues.map((deviceValue: DeviceValues) => ({
-        type: deviceValue.type,
-        key: deviceValue.key,
-      })),
-      range: this.mapRange(value.range), // Map the range if available
+      deviceValues: value.deviceValues || [],
+      range: value.range || {} as ValuesRange, 
     }));
   }
 
-  
-
-  private mapRange(range: any): ValuesRange {
-    if (range && range.min !== undefined && range.max !== undefined && range.step !== undefined) {
-      return {
-        min: range.min,
-        max: range.max,
-        step: range.step,
-      };
-    }
-    return { min: 0, max: 100, step: 1 }; // Default range values if not provided
-  }
-
   private async exportDevicesToFile(devices: Device[]): Promise<void> {
-    try {
-      const filePath = path.resolve(__dirname, '../../devices.json'); // Path to save the file
-
-      fs.writeFileSync(filePath, JSON.stringify(devices, null, 2), 'utf-8'); // Write JSON to file
-
-      this._platform.log.info(`Devices exported successfully to: ${filePath}`);
-    } catch (error) {
-      this._platform.log.info('Device Response:', JSON.stringify(devices, null, 2));
-    }
+    const filePath = path.resolve(__dirname, 'devices.json');
+    fs.writeFileSync(filePath, JSON.stringify(devices, null, 2));
+    this._platform.log.info(`Devices exported to file: ${filePath}`);
   }
-
-  /**
-   * Function to toggle device On/Off state
-   * @param device The device to toggle the state for
-   * @param state The desired state (true for ON, false for OFF)
-   */
-  async toggleDeviceState(device: Device, state: boolean): Promise<void> {
-    try {
-      const action = state ? 'on' : 'off';
-      const response = await this._httpClient.post(
-        `${Endpoints.API_BASE_URL}/devices/${device.deviceId}/state`,
-        {
-          state: action, // Either 'on' or 'off'
-        }
-      );
-  
-      if (response.status === 200) {
-        this._platform.log.info(`Device ${device.name} is now turned ${action}.`);
-      } else {
-        this._platform.log.warn(`Failed to toggle device ${device.name} to ${action}.`);
-      }
-    } catch (error) {
-      // Handle 'unknown' error type
-      if (error instanceof Error) {
-        this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
-      }}}}
+}
