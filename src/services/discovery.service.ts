@@ -84,7 +84,8 @@ export class DiscoveryService {
       // For each outlet (child), create an accessory
       device.children.forEach((childDevice, index) => {
         this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
-        createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children.length);
+        createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children?.length ?? 0);
+
       });
     } else {
       this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
@@ -218,7 +219,8 @@ export class DiscoveryService {
    * @param device The device to toggle the state for
    * @param state The desired state (true for ON, false for OFF)
    */
-  async toggleDeviceState(device: Device, state: boolean): Promise<void> {
+// Function to toggle device On/Off state
+async toggleDeviceState(device: Device, state: boolean): Promise<void> {
     try {
       const action = state ? 'on' : 'off';
       const response = await this._httpClient.post(
@@ -227,14 +229,18 @@ export class DiscoveryService {
           state: action, // Either 'on' or 'off'
         }
       );
-
+  
       if (response.status === 200) {
         this._platform.log.info(`Device ${device.name} is now turned ${action}.`);
       } else {
         this._platform.log.warn(`Failed to toggle device ${device.name} to ${action}.`);
       }
     } catch (error) {
-      this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
+      // Handle 'unknown' error type
+      if (error instanceof Error) {
+        this._platform.log.error(`Error toggling device ${device.name}: ${error.message}`);
+      } else {
+        this._platform.log.error(`Error toggling device ${device.name}: Unknown error`);
+      }
     }
-  }
-}
+  

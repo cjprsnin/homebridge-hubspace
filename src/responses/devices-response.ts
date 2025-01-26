@@ -7,6 +7,13 @@ export interface DeviceFunctionResponse {
     values: DeviceFunctionValue[]; // Values associated with the function
 }
 
+// Define the Range interface if it's not already available
+export interface Range {
+    min: number;
+    max: number;
+    step: number;
+  }
+
 export interface DeviceFunctionValue {
     id: string;
     name: string; // e.g., "on", "off"
