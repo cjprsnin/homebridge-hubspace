@@ -160,15 +160,16 @@ export class DiscoveryService {
   
         // Adding a switch service to the accessory (Use Service from hap-nodejs)
         const switchService = platformAccessory.addService(
-            Service.Switch, 
-            parentDevice.name, 
-            parentDevice.uuid
-        );
-            switchService.getCharacteristic(Characteristic.on)
+            Service.Switch, // Service type
+            'Switch Name',  // Display name
+            'unique-switch-id' // Optional UUID for the service
+          );
+          
+          switchService.getCharacteristic(Characteristic.On)
             .on('set', (value, callback) => {
-            console.log(`Toggled parent device: ${parentDevice.name} to ${value}`);
-            callback();
-         });
+              console.log(`Switch set to: ${value}`);
+              callback();
+            });
         
   
           this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
