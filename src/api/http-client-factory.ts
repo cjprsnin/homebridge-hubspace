@@ -1,6 +1,6 @@
 import { AxiosInstance, CreateAxiosDefaults, InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
-import { addBearerToken } from './interceptors/add-bearer-token';
+import { addBearerToken } from './interceptors';
 import { Logger } from 'homebridge';
 
 /**
