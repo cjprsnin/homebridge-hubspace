@@ -4,6 +4,7 @@ import { AccountResponse } from '../responses/account-response';
 import { Logger } from 'homebridge';
 import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
 import { TokenService } from './token-service';
+import { Device } from '../models/device'; // Import the Device type
 
 /**
  * Service for managing account details
@@ -13,7 +14,7 @@ export class AccountService {
     baseURL: Endpoints.API_BASE_URL,
   });
 
-  private _onAccountLoaded?: () => Promise<Device[]>; // Update the type
+  private _onAccountLoaded?: () => Promise<Device[]>; // Use the Device type
   private _accountId = '';
 
   constructor(private readonly _log: Logger) {}
@@ -27,9 +28,9 @@ export class AccountService {
 
   /**
    * Sets a callback to be invoked when the account is loaded
-   * @param callback Callback function
+   * @param callback Callback function that returns a Promise of Device[]
    */
-    public onAccountLoaded(callback: () => Promise<Device[]>) {
+  public onAccountLoaded(callback: () => Promise<Device[]>): void {
     this._onAccountLoaded = callback;
   }
 
@@ -39,12 +40,6 @@ export class AccountService {
    */
   public async loadAccount(): Promise<void> {
     try {
-      // Ensure a valid token is available
-      const token = await TokenService.instance.getToken();
-      if (!token) {
-        throw new Error('Failed to retrieve access token.');
-      }
-
       const response = await this._httpClient.get<AccountResponse>('/users/me');
 
       // Check if account access is available
