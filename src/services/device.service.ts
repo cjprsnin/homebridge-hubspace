@@ -122,7 +122,24 @@ export class DeviceService {
     this._platform.log.warn('Unsupported value type:', typeof value);
     throw new Error('The value type is not supported.');
   }
+/**
+   * Gets a value for attribute as boolean
+   * @param deviceId ID of a device
+   * @param attributeId ID of the attribute to get
+   * @returns Boolean value
+   */
+  public async getValueAsBoolean(deviceId: string, attributeId: string): Promise<boolean | undefined> {
+    const value = await this.getValue(deviceId, attributeId);
+    return value === '1';
+  }
 
+   public async getValueAsInteger(deviceId: string, attributeId: string): Promise<number | undefined> {
+    const value = await this.getValue(deviceId, attributeId);
+    if (typeof value === 'string') {
+      return parseInt(value, 10);
+    }
+    return undefined;
+  }
   /**
    * Handles errors from API requests
    * @param error Axios error
