@@ -13,7 +13,7 @@ export class AccountService {
     baseURL: Endpoints.API_BASE_URL,
   });
 
-  private _onAccountLoaded?: () => void | Promise<void>;
+  private _onAccountLoaded?: () => Promise<Device[]>; // Update the type
   private _accountId = '';
 
   constructor(private readonly _log: Logger) {}
@@ -29,7 +29,7 @@ export class AccountService {
    * Sets a callback to be invoked when the account is loaded
    * @param callback Callback function
    */
-  public onAccountLoaded(callback: () => Promise<void>) {
+    public onAccountLoaded(callback: () => Promise<Device[]>) {
     this._onAccountLoaded = callback;
   }
 
