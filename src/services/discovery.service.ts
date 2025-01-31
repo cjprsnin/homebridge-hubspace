@@ -16,6 +16,9 @@ export class DiscoveryService {
     );
   }
 
+   public configureCachedAccessory(accessory: PlatformAccessory): void {
+    // Implementation for configuring cached accessories
+        }
   /**
    * Discovers devices associated with the account
    * @returns Array of devices
