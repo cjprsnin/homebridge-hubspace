@@ -1,8 +1,8 @@
 import { Device } from '../models/device';
 import { Endpoints } from '../api/endpoints';
 import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
-import { Logger } from 'homebridge';
-import { TokenService } from './token.service';
+import { Logger, PlatformAccessory } from 'homebridge'; // Import PlatformAccessory
+import { TokenService } from './token-service';
 
 /**
  * Service for discovering devices
@@ -17,9 +17,15 @@ export class DiscoveryService {
     );
   }
 
-   public configureCachedAccessory(accessory: PlatformAccessory): void {
+  /**
+   * Configures a cached accessory
+   * @param accessory Cached accessory
+   */
+  public configureCachedAccessory(accessory: PlatformAccessory): void {
     // Implementation for configuring cached accessories
-        }
+    this._log.info('Configuring cached accessory:', accessory.displayName);
+  }
+
   /**
    * Discovers devices associated with the account
    * @returns Array of devices
