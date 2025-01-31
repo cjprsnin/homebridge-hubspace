@@ -4,13 +4,12 @@ import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
 
-export class SprinklerAccessory extends HubspaceAccessory{
-    /**
-     * Crates a new instance of the accessory
-     * @param platform Hubspace platform
-     * @param accessory Platform accessory
-     */
-    constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
+export class SprinklerAccessory extends HubspaceAccessory {
+  constructor(
+    platform: HubspacePlatform,
+    accessory: PlatformAccessory,
+    additionalData?: any // Add additionalData parameter
+  ) {
         super(platform, accessory, [new platform.Service.Valve('1', '1'), new platform.Service.Valve('2', '2'), platform.Service.Battery]);
 
         this.configureSprinkler();
