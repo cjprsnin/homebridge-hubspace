@@ -14,11 +14,10 @@ export class OutletAccessory extends HubspaceAccessory {
     device: Device,
     additionalData?: any // Add additionalData parameter
   ) {
-        super(platform, accessory, [platform.Service.Outlet]);
-        this.outletIndex = outletIndex;  // Store the outlet index
-        this.configureOutlet();
-        this.removeStaleServices();
-    }
+    super(platform, accessory, [platform.Service.Outlet]);
+    // Use device and additionalData if needed
+  }
+}
 
     private configureOutlet(): void {
         // Check if the device supports OutletPower function
