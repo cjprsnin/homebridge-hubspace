@@ -80,7 +80,15 @@ export class AccountService {
         try {
             const response = await this._client.get<AccountResponse>('/users/me');
 
+            // Check if account access is available
+            if (response.data.accountAccess.length === 0) {
+                this._log.error('No account access found.');
+                throw new Error('No account access found.');
+            }
+
+            // Extract the account ID
             this._accountId = response.data.accountAccess[0].account.accountId;
+            this._log.debug('Account ID loaded:', this._accountId);
 
             // Set the refresh token and expiry time (if available in the response)
             if (response.data.refreshToken) {
