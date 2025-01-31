@@ -11,47 +11,61 @@ import { isConfigValid } from './config';
  * parse the user config and discover/register accessories with Homebridge.
  */
 export class HubspacePlatform implements DynamicPlatformPlugin {
-    public readonly Service: typeof Service = this.api.hap.Service;
-    public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
-    public readonly accountService!: AccountService;
-    public readonly deviceService!: DeviceService;
+  public readonly Service: typeof Service = this.api.hap.Service;
+  public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
+  public readonly accountService!: AccountService;
+  public readonly deviceService!: DeviceService;
 
-    private readonly _discoveryService!: DiscoveryService;
-    private _isInitialized = false;
+  private readonly _discoveryService!: DiscoveryService;
+  private _isInitialized = false;
 
-    constructor(
-        public readonly log: Logger,
-        public readonly config: PlatformConfig,
-        public readonly api: API
-    ) {
-        if(!isConfigValid(config)){
-            this.log.error('Configuration is invalid. Platform will not start.');
-            return;
-        }
-        // Init token service as singleton
-        TokenService.init(this.config.username, this.config.password);
-        // Configure private services
-        this._discoveryService = new DiscoveryService(this);
-        // Configure global services
-        this.accountService = new AccountService(log);
-        this.deviceService = new DeviceService(this);
-
-        // Configure callbacks
-        this.accountService.onAccountLoaded(this._discoveryService.discoverDevices.bind(this._discoveryService));
-        this.api.on('didFinishLaunching', async () => this.accountService.loadAccount());
-
-        // Mark platform as initialized
-        this._isInitialized = true;
+  constructor(
+    public readonly log: Logger,
+    public readonly config: PlatformConfig,
+    public readonly api: API
+  ) {
+    // Validate configuration
+    if (!isConfigValid(config)) {
+      this.log.error('Configuration is invalid. Platform will not start.');
+      return;
     }
 
-    /**
+    // Initialize TokenService as a singleton
+    TokenService.init(this.config.username, this.config.password);
+
+    // Initialize services
+    this._discoveryService = new DiscoveryService(this);
+    this.accountService = new AccountService(this.log);
+    this.deviceService = new DeviceService(this);
+
+    // Configure callbacks
+    this.accountService.onAccountLoaded(this._discoveryService.discoverDevices.bind(this._discoveryService));
+    this.api.on('didFinishLaunching', async () => {
+      try {
+        await this.accountService.loadAccount();
+      } catch (ex) {
+        this.log.error('Failed to load account:', ex);
+      }
+    });
+
+    // Mark platform as initialized
+    this._isInitialized = true;
+    this.log.info('HubspacePlatform initialized successfully.');
+  }
+
+  /**
    * This function is invoked when homebridge restores cached accessories from disk at startup.
    * It should be used to setup event handlers for characteristics and update respective values.
    */
-    configureAccessory(accessory: PlatformAccessory) {
-        // Do not restore cached accessories if there was an error during initialization
-        if(!this._isInitialized) return;
-
-        this._discoveryService.configureCachedAccessory(accessory);
+  configureAccessory(accessory: PlatformAccessory) {
+    // Do not restore cached accessories if there was an error during initialization
+    if (!this._isInitialized) {
+      this.log.warn('Platform not initialized. Skipping cached accessory:', accessory.displayName);
+      return;
     }
+
+    // Configure the cached accessory
+    this._discoveryService.configureCachedAccessory(accessory);
+    this.log.info('Restored cached accessory:', accessory.displayName);
+  }
 }
