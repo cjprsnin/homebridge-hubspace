@@ -1,235 +1,170 @@
-import { Service, Characteristic } from "hap-nodejs"; // Ensure this is the correct import
-import { PlatformAccessory } from 'homebridge'; // Check if this is a type or class
 import { HubspacePlatform } from '../platform';
-import { DeviceResponse } from '../responses/devices-response';
-import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
 import { Endpoints } from '../api/endpoints';
 import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
-import { DeviceType, getDeviceTypeForKey } from '../models/device-type';
-import { Device } from '../models/device';
-import { createAccessoryForDevice } from '../accessories/device-accessory-factory';
-import { AxiosError } from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
-import {
-  DeviceFunctionResponse,
-  DeviceFunctionValues,
-  ValuesRange,
-} from '../responses/device-function-response';
-import * as hap from 'hap-nodejs';
+import { AxiosError, AxiosResponse } from 'axios';
+import { DeviceStatusResponse } from '../responses/device-status-response';
+import { CharacteristicValue } from 'homebridge';
+import { convertNumberToHexReverse } from '../utils';
+import { isAferoError } from '../responses/afero-error-response';
 
 /**
- * Service for discovering and managing devices
+ * Service for interacting with devices
  */
-export class DiscoveryService {
+export class DeviceService {
     private readonly _httpClient = createHttpClientWithBearerInterceptor({
-      baseURL: Endpoints.API_BASE_URL,
-      headers: {
-        host: 'semantics2.afero.net',
-      },
+        baseURL: Endpoints.API_BASE_URL,
     });
-  
-    private _cachedAccessories: PlatformAccessory[] = [];
-  
+
     constructor(private readonly _platform: HubspacePlatform) {}
-  
-    configureCachedAccessory(accessory: PlatformAccessory): void {
-      this._cachedAccessories.push(accessory);
+
+    /**
+     * Refreshes the token if it has expired
+     */
+    private async refreshTokenIfExpired(): Promise<void> {
+        if (this._platform.accountService.isTokenExpired()) {
+            await this._platform.accountService.refreshToken();
+        }
     }
-  
-    async discoverDevices() {
-      const devices = await this.getDevicesForAccount();
-  
-      for (const device of devices) {
-        let existingAccessory = this._cachedAccessories.find(
-          (accessory) => accessory.UUID === device.uuid
-        );
-  
-        if (existingAccessory) {
-          this._platform.log.info(
-            'Restoring existing accessory from cache:',
-            existingAccessory.displayName
-          );
-          this.registerCachedAccessory(existingAccessory, device);
+
+    /**
+     * Sets an attribute value for a device
+     * @param deviceId ID of a device
+     * @param attributeId ID of the attribute to set
+     * @param value Value to set to attribute
+     */
+    async setValue(deviceId: string, attributeId: string, value: CharacteristicValue): Promise<void> {
+        await this.refreshTokenIfExpired();
+
+        let response: AxiosResponse;
+
+        try {
+            const payload = {
+                type: 'attribute_write',
+                attrId: attributeId,
+                data: this.getDataValue(value),
+            };
+
+            this._platform.log.debug('Sending request payload:', payload);
+
+            response = await this._httpClient.post(
+                `accounts/${this._platform.accountService.accountId}/devices/${deviceId}/actions`,
+                payload
+            );
+
+            this._platform.log.debug('Received response:', response.data);
+        } catch (ex) {
+            this.handleError(<AxiosError>ex);
+            return;
+        }
+
+        if (response.status === 200) return;
+
+        this._platform.log.error(`Remote server did not accept new value ${value} for device (ID: ${deviceId}).`);
+    }
+
+    /**
+     * Gets a value for attribute
+     * @param deviceId ID of a device
+     * @param attributeId ID of the attribute to get
+     * @returns Data value
+     */
+    async getValue(deviceId: string, attributeId: string): Promise<CharacteristicValue | undefined> {
+        await this.refreshTokenIfExpired();
+
+        let deviceStatus: DeviceStatusResponse;
+
+        try {
+            const response = await this._httpClient.get<DeviceStatusResponse>(
+                `accounts/${this._platform.accountService.accountId}/devices/${deviceId}?expansions=attributes,state`
+            );
+            deviceStatus = response.data;
+        } catch (ex) {
+            this.handleError(<AxiosError>ex);
+            return undefined;
+        }
+
+        /* Device is offline */
+        if (!deviceStatus.deviceState.available) {
+            this._platform.log.warn(`Device (ID: ${deviceId}) is offline.`);
+            return undefined;
+        }
+
+        const attributeResponse = deviceStatus.attributes.find((a) => a.id.toString() === attributeId);
+
+        if (!attributeResponse) {
+            this._platform.log.error(`Failed to find value for ${attributeId} for device (device ID: ${deviceId})`);
+            return undefined;
+        }
+
+        return attributeResponse.value;
+    }
+
+    /**
+     * Gets a value for attribute as boolean
+     * @param deviceId ID of a device
+     * @param attributeId ID of the attribute to get
+     * @returns Boolean value
+     */
+    async getValueAsBoolean(deviceId: string, attributeId: string): Promise<boolean | undefined> {
+        const value = await this.getValue(deviceId, attributeId);
+
+        if (!value) return undefined;
+
+        return value === '1';
+    }
+
+    /**
+     * Gets a value for attribute as integer
+     * @param deviceId ID of a device
+     * @param attributeId ID of the attribute to get
+     * @returns Integer value
+     */
+    async getValueAsInteger(deviceId: string, attributeId: string): Promise<number | undefined> {
+        const value = await this.getValue(deviceId, attributeId);
+
+        if (!value || typeof value !== 'string') return undefined;
+
+        const numberValue = Number.parseInt(value);
+
+        return Number.isNaN(numberValue) ? undefined : numberValue;
+    }
+
+    /**
+     * Converts a characteristic value to a string representation
+     * @param value Value to convert
+     * @returns String representation of the value
+     */
+    private getDataValue(value: CharacteristicValue): string {
+        if (typeof value === 'string') {
+            return value;
+        }
+
+        if (typeof value === 'boolean') {
+            return value ? '01' : '00';
+        }
+
+        if (typeof value === 'number') {
+            return convertNumberToHexReverse(value);
+        }
+
+        this._platform.log.warn('Unsupported value type:', typeof value);
+        throw new Error('The value type is not supported.');
+    }
+
+    /**
+     * Handles errors from API requests
+     * @param error Axios error
+     */
+    private handleError(error: AxiosError): void {
+        const responseData = error.response?.data;
+        const errorMessage = isAferoError(responseData) ? responseData.error_description : error.message;
+
+        if (error.response?.status === 429) {
+            this._platform.log.error('Rate limit exceeded. Please try again later.');
+        } else if (error.response?.status === 401) {
+            this._platform.log.error('Unauthorized. Please check your credentials.');
         } else {
-          this._platform.log.info('Adding new accessory:', device.name);
-          existingAccessory = this.registerNewAccessory(device);
+            this._platform.log.error('The remote service returned an error:', errorMessage);
         }
-  
-        if (device.type === DeviceType.MultiOutlet && device.children) {
-          this.handleMultiOutletDevice(device, existingAccessory);
-        } else {
-          if (device.type === DeviceType.Parent) {
-            this._platform.log.info(`Skipping accessory creation for parent device: ${device.name}`);
-            continue;
-          }
-  
-          createAccessoryForDevice(device, this._platform, existingAccessory);
-        }
-      }
-  
-      this.clearStaleAccessories(
-        this._cachedAccessories.filter((a) => !devices.some((d) => d.uuid === a.UUID))
-      );
-  
-      await this.exportDevicesToFile(devices);
-    }
-  
-    private handleMultiOutletDevice(device: Device, existingAccessory: PlatformAccessory) {
-      if (device.children && device.children.length > 0) {
-        device.children.forEach((childDevice, index) => {
-          this._platform.log.info(`Adding outlet ${index + 1} for multi-outlet device: ${device.name}`);
-          createAccessoryForDevice(childDevice, this._platform, existingAccessory, device.children?.length ?? 0);
-        });
-      } else {
-        this._platform.log.warn(`Device ${device.name} does not have children to create outlets.`);
-      }
-    }
-  
-    private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
-      this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
-  
-      for (const accessory of staleAccessories) {
-        const cacheIndex = this._cachedAccessories.findIndex((a) => a.UUID === accessory.UUID);
-  
-        if (cacheIndex < 0) continue;
-  
-        this._platform.log.info('Removing stale accessory:', accessory.displayName);
-        this._cachedAccessories.splice(cacheIndex, 1);
-      }
-    }
-  
-    private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
-      accessory.context.device = device;
-      this._platform.api.updatePlatformAccessories([accessory]);
-    }
-  
-    private registerNewAccessory(device: Device): PlatformAccessory {
-        const accessory = new this._platform.api.platformAccessory(device.name, device.uuid); // Use platform API to create accessory
-        accessory.context.device = device;
-        this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-        this._platform.log.info('Registered new accessory:', accessory.displayName);
-        return accessory;
-    }
-  
-    private async getDevicesForAccount(): Promise<Device[]> {
-      try {
-        const response = await this._httpClient.get<DeviceResponse[]>(
-          `accounts/${this._platform.accountService.accountId}/metadevices`
-        );
-  
-        return response.data
-          .map(this.mapDeviceResponseToModel.bind(this))
-          .filter((device): device is Device => !!device);
-      } catch (ex) {
-        this._platform.log.error('Failed to get devices for account.', (<AxiosError>ex).message);
-        return [];
-      }
-    }
-  
-    private mapDeviceResponseToModel(response: DeviceResponse): Device | undefined {
-      if (!response.description || !response.description.device) {
-        if (response.children && response.children.length > 0) {
-          const parentDevice: Device = {
-            id: response.id,
-            uuid: this._platform.api.hap.uuid.generate(response.id),
-            deviceId: response.deviceId,
-            name: response.friendlyName,
-            type: DeviceType.Parent,
-            manufacturer: 'Unknown',
-            model: ['Unknown'],
-            functions: [
-              {
-                functionInstance: 'toggle',
-                functionClass: 'toggle',
-                values: [],
-                deviceValues: [],
-              },
-              {
-                functionInstance: 'timer',
-                functionClass: 'timer',
-                values: [],
-                deviceValues: [],
-              }
-            ],
-            children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this))
-              .filter((child): child is Device => !!child),
-          };
-  
-          // Use PlatformAccessory from Homebridge API context
-          const platformAccessory = new this._platform.api.platformAccessory(parentDevice.name, parentDevice.uuid);
-          platformAccessory.context = { device: parentDevice };
-  
-          const switchService = platformAccessory.addService(
-              new hap.Service.Switch(parentDevice.name, parentDevice.uuid)
-          );
-          
-          switchService
-              .getCharacteristic(hap.Characteristic.On)
-              .on('set', (value, callback) => {
-                  console.log(`Switch toggled to ${value}`);
-                  callback();
-              });
-  
-          this._platform.api.publishExternalAccessories('homebridge-hubspace', [platformAccessory]);
-          this._platform.log.info(`Parent device created for ${parentDevice.name}:`, parentDevice);
-          
-          return parentDevice;
-        }
-  
-        this._platform.log.warn(`Skipping device with missing description or device info: ${response.id}`);
-        return undefined;
-      }
-  
-      const type = getDeviceTypeForKey(response.description.device.deviceClass);
-      if (!type) {
-        this._platform.log.warn(`Skipping device with unsupported type: ${response.id}`);
-        return undefined;
-      }
-  
-      return {
-        id: response.id,
-        uuid: this._platform.api.hap.uuid.generate(response.id),
-        deviceId: response.deviceId,
-        name: response.friendlyName,
-        type: type,
-        manufacturer: response.description.device.manufacturerName,
-        model: response.description.device.model.split(',').map((m) => m.trim()),
-        functions: this.getSupportedFunctionsFromResponse(response.description.functions),
-        children: (response.children ?? []).map(this.mapDeviceResponseToModel.bind(this))
-          .filter((child): child is Device => !!child),
-      };
-    }
-  
-    private getSupportedFunctionsFromResponse(functions: any[]): DeviceFunctionResponse[] {
-      const output: DeviceFunctionResponse[] = [];
-  
-      functions.forEach((func) => {
-        if (func && func.values) {
-          const functionResponse: DeviceFunctionResponse = {
-            functionInstance: func.id,
-            functionClass: func.functionClass,
-            values: this.mapFunctionValues(func.values),
-            deviceValues: func.deviceValues || [],
-          };
-          output.push(functionResponse);
-        }
-      });
-  
-      return output;
-    }
-  
-    private mapFunctionValues(values: any[]): DeviceFunctionValues[] {
-      return values.map((value) => ({
-        name: value.name,
-        deviceValues: value.deviceValues || [],
-        range: value.range || {} as ValuesRange,
-      }));
-    }
-  
-    private async exportDevicesToFile(devices: Device[]): Promise<void> {
-      const filePath = path.resolve(__dirname, 'devices.json');
-      fs.writeFileSync(filePath, JSON.stringify(devices, null, 2));
-      this._platform.log.info(`Devices exported to file: ${filePath}`);
     }
 }
