@@ -2,6 +2,7 @@ import { Device } from '../models/device';
 import { Endpoints } from '../api/endpoints';
 import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
 import { Logger } from 'homebridge';
+import { TokenService } from './token.service';
 
 /**
  * Service for discovering devices
