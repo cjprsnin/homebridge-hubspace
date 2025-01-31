@@ -7,14 +7,12 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 /**
  * Fan accessory for Hubspace platform
  */
-export class FanAccessory extends HubspaceAccessory{
-
-    /**
-     * Crates a new instance of the accessory
-     * @param platform Hubspace platform
-     * @param accessory Platform accessory
-     */
-    constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
+export class FanAccessory extends HubspaceAccessory {
+  constructor(
+    platform: HubspacePlatform,
+    accessory: PlatformAccessory,
+    additionalData?: any // Add additionalData parameter
+  ) {
         super(platform, accessory, [platform.Service.Fanv2]);
 
         this.configureActive();
