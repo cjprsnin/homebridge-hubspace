@@ -7,18 +7,14 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 /**
  * Light accessory for Hubspace platform
  */
-export class LightAccessory extends HubspaceAccessory{
-
-    /**
-     * Crates a new instance of the accessory
-     * @param platform Hubspace platform
-     * @param accessory Platform accessory
-     * @param rgbColorSpace The "Forced" Color Space of the Accessory
-     */
-    constructor(platform: HubspacePlatform, accessory: PlatformAccessory) {
-        super(platform, accessory, [new platform.Service.Lightbulb('1', '1')]);
-
-        this.configurePower(0);
+export class LightAccessory extends HubspaceAccessory {
+  constructor(
+    platform: HubspacePlatform,
+    accessory: PlatformAccessory,
+    additionalData?: any // Add additionalData parameter
+  ) {
+    super(platform, accessory, [platform.Service.Lightbulb]);
+            this.configurePower(0);
         this.configureBrightness(0);
         this.configureName(this.services[0], this.accessory.displayName);
 
