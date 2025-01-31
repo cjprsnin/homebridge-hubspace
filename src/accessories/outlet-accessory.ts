@@ -8,15 +8,12 @@ import { isNullOrUndefined } from '../utils';
  * OutletAccessory handles outlet device functionalities
  */
 export class OutletAccessory extends HubspaceAccessory {
-    private outletIndex: number;  // Index for identifying the outlet in a multi-outlet device
-
-    /**
-     * Creates a new instance of the accessory
-     * @param platform Hubspace platform
-     * @param accessory Platform accessory
-     * @param outletIndex The outlet index (for multi-outlet devices)
-     */
-    constructor(platform: HubspacePlatform, accessory: PlatformAccessory, outletIndex: number) {
+  constructor(
+    platform: HubspacePlatform,
+    accessory: PlatformAccessory,
+    device: Device,
+    additionalData?: any // Add additionalData parameter
+  ) {
         super(platform, accessory, [platform.Service.Outlet]);
         this.outletIndex = outletIndex;  // Store the outlet index
         this.configureOutlet();
