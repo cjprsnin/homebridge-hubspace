@@ -37,4 +37,8 @@ export class OutletAccessory implements HubspaceAccessory {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
     await this.platform.deviceService.setValue(this.device.deviceId, func.deviceValues[this.outletIndex].key, value);
   }
+  
+  public getServices(): Service[] {
+  return this.services;
+}
 }
