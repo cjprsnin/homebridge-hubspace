@@ -30,7 +30,10 @@ interface AdditionalData {
  */
 export class DeviceAccessoryFactory {
   static createAccessory(platform: HubspacePlatform, accessory: PlatformAccessory, device: Device, additionalData?: AdditionalData): HubspaceAccessory {
-    switch (device.deviceType) {
+    // Use the correct property name for device type (e.g., device.type or device.deviceType)
+    const deviceType = device.deviceType || device.type; // Adjust based on your Device type definition
+
+    switch (deviceType) {
     case DeviceType.Light:
       // Create a LightAccessory for light devices
       return new LightAccessory(platform, accessory, additionalData);
