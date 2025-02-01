@@ -35,7 +35,7 @@ export class DeviceAccessoryFactory {
     additionalData?: AdditionalData
   ): HubspaceAccessory {
     // Use the correct property name for device type (e.g., device.type or device.deviceType)
-    const deviceType = device.deviceType || device.type; // Adjust based on your Device type definition
+    const deviceType = device.type; // Use device.type instead of device.deviceType
 
     switch (deviceType) {
       case DeviceType.Light:
