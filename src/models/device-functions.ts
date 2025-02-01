@@ -9,55 +9,53 @@ import { Logger } from 'homebridge';
  * Device function types
  */
 export enum DeviceFunction {
-  /** Controls power state (on/off) */
   Power = 'power',
-
-  /** Controls brightness level */
   Brightness = 'brightness',
-
-  /** Controls fan light power state */
   FanLightPower = 'light-power',
-
-  /** Controls fan power state */
   FanPower = 'fan-power',
-
-  /** Controls fan speed */
   FanSpeed = 'fan-speed',
-
-  /** Controls outlet power state */
   OutletPower = 'power',
-
-  /** Controls light temperature (color temperature) */
   LightTemperature = 'color-temperature',
-
-  /** Controls light color (RGB) */
   LightColor = 'color-rgb',
-
-  /** Controls color mode (e.g., RGB, temperature) */
   ColorMode = 'color-mode',
-
-  /** Toggle state (on/off) */
   Toggle = 'toggle',
-
-  /** Maximum on time setting */
   MaxOnTime = 'max-on-time',
-
-  /** Battery level indicator */
   BatteryLevel = 'battery-level',
-
-  /** Timer setting */
   Timer = 'timer',
-
-  /** Spigot 1 control */
   Spigot1 = 'spigot-1',
-
-  /** Spigot 2 control */
   Spigot2 = 'spigot-2',
 }
 
-/**
- * Supported/implemented device functions with identifiers for discovery and/or manipulation.
- */
+export interface DeviceValues {
+  type: string;
+  key: string;
+  values: DeviceFunctionValues[];
+}
+
+export interface ValuesRange {
+  min: number;
+  max: number;
+  step: number;
+}
+
+export interface DeviceFunctionValues {
+  name: string;
+  deviceValues: DeviceValues[];
+  range: ValuesRange;
+}
+
+export interface DeviceFunctionResponse {
+  functionClass: string;
+  functionInstance: string;
+  values: DeviceFunctionValues[];
+  outletIndex?: number;
+}
+
+export interface DeviceFunctionDef {
+  functionClass: DeviceFunction;
+  functionInstanceName: string;
+}
+
 export const DeviceFunctions: DeviceFunctionDef[] = [
   {
     functionClass: DeviceFunction.Power,
@@ -124,6 +122,7 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
     functionInstanceName: DeviceFunction.Spigot2,
   },
 ];
+
 
 /**
  * Gets function definition for a type
