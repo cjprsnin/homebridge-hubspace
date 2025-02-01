@@ -1,43 +1,29 @@
-import { AxiosInstance, CreateAxiosDefaults, InternalAxiosRequestConfig } from 'axios';
-import axios from 'axios';
-import { addBearerToken } from './interceptors';
-import { Logger } from 'homebridge';
+import axios, { AxiosInstance } from 'axios';
+import { addRequestInterceptor, addResponseInterceptor } from './interceptors';
 
-/**
- * Creates an HTTP client with Bearer interceptor
- * @param config HTTP client configuration
- * @param logger Optional logger instance for consistent logging
- * @returns HTTP client with Bearer interceptor
- */
-export function createHttpClientWithBearerInterceptor(
-  config?: CreateAxiosDefaults<unknown>,
-  logger?: Logger
-): AxiosInstance {
-  const client = axios.create(config);
+export class HttpClientFactory {
+  /**
+   * Creates and configures an Axios HTTP client.
+   * @param baseURL - The base URL for the API.
+   * @param token - Optional authentication token.
+   * @returns The configured Axios instance.
+   */
+  static createHttpClient(baseURL: string, token?: string): AxiosInstance {
+    const client = axios.create({
+      baseURL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  // Add Bearer token interceptor
-  client.interceptors.request.use(
-    async (config: InternalAxiosRequestConfig<unknown>) => {
-      try {
-        return await addBearerToken(config, logger);
-      } catch (ex) {
-        if (logger) {
-          logger.error('Failed to add Bearer token to request:', ex);
-        } else {
-          console.error('Failed to add Bearer token to request:', ex);
-        }
-        throw ex; // Re-throw the error to ensure the request fails
-      }
-    },
-    (error) => {
-      if (logger) {
-        logger.error('Request interceptor error:', error);
-      } else {
-        console.error('Request interceptor error:', error);
-      }
-      return Promise.reject(error);
+    // Add request interceptor (if token is provided)
+    if (token) {
+      addRequestInterceptor(client, token);
     }
-  );
 
-  return client;
+    // Add response interceptor
+    addResponseInterceptor(client);
+
+    return client;
+  }
 }
