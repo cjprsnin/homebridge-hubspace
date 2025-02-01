@@ -1,19 +1,8 @@
-import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
-import { HubspacePlatform } from '../platform';
-import { HubspaceAccessory } from './hubspace-accessory';
-import { Device } from '../models/device';
-import { AdditionalData } from './device-accessory-factory';
-import { isNullOrUndefined } from '../utils';
-import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
-
-/**
- * Fan accessory for Hubspace platform
- */
 export class FanAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    protected readonly device: Device, // Change from public to protected
+    protected readonly device: Device,
     private readonly additionalData?: AdditionalData
   ) {
     super(platform, accessory, [platform.Service.Fanv2]); // Call super with required services
@@ -23,19 +12,14 @@ export class FanAccessory extends HubspaceAccessory {
 
   public initializeService(): void {
     const service = this.addService(this.platform.Service.Fanv2); // Use addService from base class
-    this.configureName(); // Configure the display name
+    this.configureName(service, this.device.name); // Call configureName from base class
     this.configureActive();
     this.configureRotationSpeed();
-
     this.removeStaleServices();
   }
 
   public updateState(state: any): void {
     // Update the state of the accessory
-  }
-
-  private configureName(): void {
-    super.configureName(this.services[0], this.device.name); // Call base class implementation
   }
 
   private configureActive(): void {
