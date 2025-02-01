@@ -2,7 +2,7 @@ import { TokenService } from './token.service';
 import { HttpClientFactory } from '../api/http-client-factory';
 import { AxiosInstance } from 'axios';
 
-port class AccountService {
+export class AccountService {
   private _httpClient: AxiosInstance;
   private _tokenService: TokenService;
 
