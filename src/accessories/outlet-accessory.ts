@@ -1,43 +1,28 @@
-import { HubspacePlatform } from '../platform';
 import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge'; // Import CharacteristicValue
+import { HubspacePlatform } from '../platform';
 import { Device, DeviceFunction, getDeviceFunctionDef } from '../models';
-import { HubspaceAccessory } from './hubspace-accessory';
-import { isNullOrUndefined } from '../utils';
 import { DeviceService } from '../services/device-service'; // Import DeviceService
 
 export class OutletAccessory {
-  private outletIndex: number; // Add outletIndex property
+  private deviceService: DeviceService; // Add deviceService property
 
   constructor(
     private readonly platform: HubspacePlatform,
     private readonly accessory: PlatformAccessory,
     private readonly device: Device,
-    outletIndex: number, // Add outletIndex parameter
+    private readonly outletIndex: number, // Add outletIndex parameter
     private readonly additionalData?: any
   ) {
-    this.outletIndex = outletIndex; // Initialize outletIndex
+    this.deviceService = new DeviceService(this.platform); // Initialize deviceService
     this.configureAccessory();
   }
-  
+
   private configureAccessory(): void {
-    // Configure the accessory (e.g., setup characteristics)
-    this.accessory.getService(this.platform.Service.Outlet)!
-      .getCharacteristic(this.platform.Characteristic.On)
+    const service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
+
+    service.getCharacteristic(this.platform.Characteristic.On)
       .onGet(this.getOn.bind(this))
       .onSet(this.setOn.bind(this));
-  }
-
-  private createOutletService(): Service {
-    const outletService = this.accessory.getService(this.platform.Service.Outlet)
-      || this.accessory.addService(this.platform.Service.Outlet);
-
-    outletService.setCharacteristic(this.platform.Characteristic.Name, this.device.name);
-
-    return outletService;
-  }
-
-  public getServices(): Service[] {
-    return [this.createOutletService()];
   }
 
   private async getOn(): Promise<CharacteristicValue> {
