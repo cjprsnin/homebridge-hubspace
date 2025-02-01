@@ -19,16 +19,16 @@ export class LightAccessory implements HubspaceAccessory {
   private saturation: CharacteristicValue = -1;
 
   constructor(
-    private readonly platform: HubspacePlatform,
-    private readonly accessory: PlatformAccessory,
-    private readonly device: Device,
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
+    protected readonly device: Device, // Change from private to protected
     private readonly additionalData?: AdditionalData
   ) {
     this.initializeService();
     this.setAccessoryInformation();
   }
 
-  initializeService(): void {
+  public initializeService(): void {
     const service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
     this.services.push(service);
 
