@@ -13,9 +13,9 @@ export class SprinklerAccessory implements HubspaceAccessory {
   public deviceService = this.platform.deviceService;
 
   constructor(
-    private readonly platform: HubspacePlatform,
-    private readonly accessory: PlatformAccessory,
-    private readonly device: Device,
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
+    public readonly device: Device, // Change from protected to public
     private readonly additionalData?: AdditionalData
   ) {
     this.initializeService();
