@@ -4,6 +4,7 @@ import { Device } from '../models/device';
 import { DeviceFunction, getDeviceFunctionDef  } from '../models/device-functions';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { AdditionalData } from './device-accessory-factory';
+import { isNullOrUndefined } from '../utils';
 
 /**
  * Multi-outlet accessory for Hubspace platform
