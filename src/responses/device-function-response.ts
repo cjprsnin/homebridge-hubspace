@@ -7,6 +7,8 @@ export interface DeviceValues{
     type: string;
     /** key id */
     key: string;
+      /** Function values */
+      values: DeviceFunctionValues[];
 }
 
 export interface ValuesRange{
