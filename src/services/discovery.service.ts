@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { HttpClientFactory } from './http-client-factory';
+import { HttpClientFactory } from '../api/http-client-factory';
 import { Device } from '../models/device';
 
 export class DiscoveryService {
