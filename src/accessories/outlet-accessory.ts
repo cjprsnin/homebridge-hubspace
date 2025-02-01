@@ -5,7 +5,7 @@ import { HubspaceAccessory } from './hubspace-accessory';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { isNullOrUndefined } from '../utils';
 
-xport class OutletAccessory {
+export class OutletAccessory {
   private outletIndex: number; // Add outletIndex property
 
   constructor(
