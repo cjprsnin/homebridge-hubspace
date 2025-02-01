@@ -5,9 +5,6 @@ import { Logger } from 'homebridge';
 /**
  * Device functions types
  */
-/**
- * Device function types
- */
 export enum DeviceFunction {
   Power = 'power',
   Brightness = 'brightness',
@@ -93,7 +90,6 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
   },
 ];
 
-
 /**
  * Gets function definition for a type
  * @param deviceFunctionResponse Function response array from device
@@ -112,10 +108,11 @@ export function getDeviceFunctionDef(
   logger?: Logger
 ): DeviceFunctionResponse {
   // Look for matching functionClass, and optionally functionInstance
-  const fc = deviceFunctionResponse.find((fc) =>
-    fc.functionClass === deviceFunction &&
-    (deviceFunctionInstance ? fc.functionInstance === deviceFunctionInstance : true) &&
-    (outletIndex !== undefined ? fc.outletIndex === outletIndex : true)
+  const fc = deviceFunctionResponse.find(
+    (fc) =>
+      fc.functionClass === deviceFunction &&
+      (deviceFunctionInstance ? fc.functionInstance === deviceFunctionInstance : true) &&
+      (outletIndex !== undefined ? fc.outletIndex === outletIndex : true)
   );
 
   // Log debugging information
@@ -144,4 +141,31 @@ export function getDeviceFunctionDef(
   }
 
   return fc;
+}
+
+// Sample population of deviceFunctionResponse and testing
+const deviceFunctionResponse: DeviceFunctionResponse[] = [
+  {
+    functionClass: 'power',
+    functionInstance: 'fan-power',
+    values: [
+      {
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
+        ],
+        range: { min: 0, max: 1, step: 1 }
+      }
+    ],
+    outletIndex: 0,
+  },
+  // Add other function definitions as needed
+];
+
+// Call the getDeviceFunctionDef function
+try {
+  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0);
+  console.log(functionDef); // Check if the correct function definition is returned
+} catch (error) {
+  console.error(error.message);
 }
