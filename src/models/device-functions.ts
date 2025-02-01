@@ -1,5 +1,5 @@
 import { DeviceFunctionDef } from './device-function-def';
-import { DeviceFunctionResponse } from '../responses/device-function-response';
+import { DeviceFunctionResponse } from '../responses/device-response';
 import { Logger } from 'homebridge';
 
 /**
