@@ -1,6 +1,7 @@
 import { AxiosInstance } from 'axios';
 import { HttpClientFactory } from '../api/http-client-factory';
 import { Device } from '../models/device';
+import { PlatformAccessory } from 'homebridge';
 
 export class DiscoveryService {
   private _httpClient: AxiosInstance;
@@ -14,10 +15,6 @@ export class DiscoveryService {
     return response.data;
   }
 
-  /**
-   * Configures a cached accessory.
-   * @param accessory - The platform accessory to configure.
-   */
   public configureCachedAccessory(accessory: PlatformAccessory): void {
     // Implement logic to configure the cached accessory
     console.log(`Configuring cached accessory: ${accessory.displayName}`);
