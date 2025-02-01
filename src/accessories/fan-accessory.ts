@@ -11,7 +11,8 @@ export class FanAccessory extends HubspaceAccessory {
   constructor(
     platform: HubspacePlatform,
     accessory: PlatformAccessory,
-    additionalData?: any // Add additionalData parameter
+    device: Device,
+    additionalData?: AdditionalData
   ) {
         super(platform, accessory, [platform.Service.Fanv2]);
 
