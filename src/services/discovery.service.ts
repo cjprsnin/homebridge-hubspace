@@ -58,7 +58,7 @@ export class DiscoveryService{
                 existingAccessory = this.registerNewAccessory(device);
             }
 
-            createAccessoryForDevice(device, this._platform, existingAccessory);
+            createAccessoryForDevice.createAccessory(this._platform, existingAccessory, device);
         }
 
         this.clearStaleAccessories(this._cachedAccessories.filter(a => !devices.some(d => d.uuid === a.UUID)));
