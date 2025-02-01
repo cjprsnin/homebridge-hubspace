@@ -16,7 +16,9 @@ export function getDeviceFunctionDef(
     fc.functionClass === functionClass &&
     (!functionInstance || fc.functionInstance === functionInstance) &&
     (outletIndex !== undefined ? fc.values[0].deviceValues[outletIndex] : true)
+  );
 }
+
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: 'power',
