@@ -1,3 +1,4 @@
+import { HubspaceAccessory } from './hubspace-accessory';
 /**
  * Device function definition
  */
