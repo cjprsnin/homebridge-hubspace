@@ -20,7 +20,6 @@ export abstract class HubspaceAccessory {
     [DeviceFunction.FanPower]: 'Fan Power',
     [DeviceFunction.FanSpeed]: 'Fan Speed',
     [DeviceFunction.Brightness]: 'Brightness',
-    [DeviceFunction.LightPower]: 'Light Power',
     [DeviceFunction.LightTemperature]: 'Color Temperature',
     [DeviceFunction.LightColor]: 'Color RGB',
     [DeviceFunction.ColorMode]: 'Color Mode',
