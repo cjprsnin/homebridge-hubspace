@@ -2,7 +2,7 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { Device } from '../models/device';
-import { AdditionalData } from './device-accessory-factory';
+import { AdditionalData } from './device-accessory-factory'; // Fixed import
 import { isNullOrUndefined } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 
@@ -18,7 +18,7 @@ export class FanAccessory implements HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    protected readonly device: Device, // Change from private to protected
+    protected readonly device: Device,
     private readonly additionalData?: AdditionalData
   ) {
     this.initializeService();
@@ -29,10 +29,15 @@ export class FanAccessory implements HubspaceAccessory {
     const service = this.accessory.getService(this.platform.Service.Fanv2) || this.accessory.addService(this.platform.Service.Fanv2);
     this.services.push(service);
 
+    this.configureName(); // Configure the display name
     this.configureActive();
     this.configureRotationSpeed();
 
     this.removeStaleServices();
+  }
+
+  configureName(): void {
+    this.services[0].setCharacteristic(this.platform.Characteristic.Name, this.device.name);
   }
 
   setAccessoryInformation(): void {
@@ -103,7 +108,6 @@ export class FanAccessory implements HubspaceAccessory {
   }
 
   private removeStaleServices(): void {
-    // Remove any stale services that are no longer needed
     const existingServices = this.accessory.services;
     const validServices = this.services.map(service => service.UUID);
 
