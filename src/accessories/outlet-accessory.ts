@@ -4,37 +4,37 @@ import { Device, DeviceFunction, getDeviceFunctionDef } from '../models/device';
 import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 import { HubspaceAccessory } from './hubspace-accessory'; // Import HubspaceAccessory interface
 
-export class OutletAccessory implements HubspaceAccessory {
+export class OutletAccessory extends HubspaceAccessory {
   public services: Service[] = []; // List of services provided by the accessory
   public log = this.platform.log; // Logger instance
   public config = this.platform.config; // Configuration object
   public deviceService = this.platform.deviceService; // Device service instance
 
   constructor(
-    private readonly platform: HubspacePlatform,
-    private readonly accessory: PlatformAccessory,
-    private readonly device: Device,
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
+    protected readonly device: Device,
     private readonly outletIndex: number,
     private readonly additionalData?: AdditionalData
   ) {
-    this.initializeService();
-    this.setAccessoryInformation();
+    super(platform, accessory, [platform.Service.Outlet]);
   }
 
   /**
    * Initializes the service for the outlet accessory.
    */
-  public initializeService(): void {
-    const service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
-    this.services.push(service);
+ public initializeService(): void {
+    const service = this.services[0];
+    this.configureName(service, `${this.device.name} Outlet ${this.outletIndex + 1}`);
 
-    service.getCharacteristic(this.platform.Characteristic.On)
+    // Configure outlet-specific characteristics
+    service
+      .getCharacteristic(this.platform.Characteristic.On)
       .onGet(() => this.getOn())
       .onSet((value) => this.setOn(value));
 
-    this.configureName(service, this.device.name);
+    this.removeStaleServices();
   }
-
   /**
    * Sets the accessory information (Manufacturer, Model, SerialNumber).
    */
