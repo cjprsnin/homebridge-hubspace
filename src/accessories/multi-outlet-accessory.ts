@@ -12,7 +12,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
     platform: HubspacePlatform,
     accessory: PlatformAccessory,
     children: Device[], // Array of child devices (outlets)
-    additionalData?: any // Optional additional data
+    additionalData?: AdditionalData
   ) {
     super(platform, accessory, [platform.Service.Outlet]);
 
