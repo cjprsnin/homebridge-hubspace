@@ -19,6 +19,13 @@ export function getDeviceFunctionDef(
   );
 }
 
+export interface DeviceFunctionDef{
+    /** API function instance name string */
+    functionInstanceName?: string;
+
+    /** Device function class */
+    functionClass: string;
+}
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: 'power',
