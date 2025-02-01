@@ -2,33 +2,27 @@ import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { Device } from '../models/device';
-import { AdditionalData } from './device-accessory-factory'; // Fixed import
+import { AdditionalData } from './device-accessory-factory';
 import { isNullOrUndefined } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 
 /**
  * Fan accessory for Hubspace platform
  */
-export class FanAccessory implements HubspaceAccessory {
-  public services: Service[] = [];
-  public log = this.platform.log;
-  public config = this.platform.config;
-  public deviceService = this.platform.deviceService;
-
+export class FanAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    public readonly device: Device, // Change from protected to public
+    protected readonly device: Device, // Change from public to protected
     private readonly additionalData?: AdditionalData
   ) {
+    super(platform, accessory, [platform.Service.Fanv2]); // Call super with required services
     this.initializeService();
     this.setAccessoryInformation();
   }
 
-  initializeService(): void {
-    const service = this.accessory.getService(this.platform.Service.Fanv2) || this.accessory.addService(this.platform.Service.Fanv2);
-    this.services.push(service);
-
+  public initializeService(): void {
+    const service = this.addService(this.platform.Service.Fanv2); // Use addService from base class
     this.configureName(); // Configure the display name
     this.configureActive();
     this.configureRotationSpeed();
@@ -36,23 +30,12 @@ export class FanAccessory implements HubspaceAccessory {
     this.removeStaleServices();
   }
 
-  configureName(): void {
-    this.services[0].setCharacteristic(this.platform.Characteristic.Name, this.device.name);
-  }
-
-  setAccessoryInformation(): void {
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer)
-      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', '))
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId);
-  }
-
-  supportsFunction(functionName: string): boolean {
-    return this.device.functions.some(f => f.name === functionName);
-  }
-
-  updateState(state: any): void {
+  public updateState(state: any): void {
     // Update the state of the accessory
+  }
+
+  private configureName(): void {
+    super.configureName(this.services[0], this.device.name); // Call base class implementation
   }
 
   private configureActive(): void {
@@ -105,16 +88,5 @@ export class FanAccessory implements HubspaceAccessory {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.FanSpeed);
     await this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, value);
     this.log.debug(`${this.device.name}: Set fan speed to ${value}`);
-  }
-
-  private removeStaleServices(): void {
-    const existingServices = this.accessory.services;
-    const validServices = this.services.map(service => service.UUID);
-
-    existingServices.forEach(service => {
-      if (!validServices.includes(service.UUID)) {
-        this.accessory.removeService(service);
-      }
-    });
   }
 }
