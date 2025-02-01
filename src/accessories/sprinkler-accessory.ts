@@ -6,18 +6,14 @@ import { HubspaceAccessory } from './hubspace-accessory';
 import { AdditionalData } from './device-accessory-factory';
 import { Device } from '../models/device';
 
-export class SprinklerAccessory implements HubspaceAccessory {
-  public services: Service[] = [];
-  public log = this.platform.log;
-  public config = this.platform.config;
-  public deviceService = this.platform.deviceService;
-
+export class SprinklerAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    public readonly device: Device, // Change from protected to public
+    protected readonly device: Device, // Change from public to protected
     private readonly additionalData?: AdditionalData
   ) {
+    super(platform, accessory, [platform.Service.Valve, platform.Service.Battery]); // Call super with required services
     this.initializeService();
     this.setAccessoryInformation();
   }
@@ -26,33 +22,12 @@ export class SprinklerAccessory implements HubspaceAccessory {
    * Initializes the services for the sprinkler accessory.
    */
   public initializeService(): void {
-    const service1 = this.accessory.getService('1') || this.accessory.addService(this.platform.Service.Valve, '1', '1');
-    const service2 = this.accessory.getService('2') || this.accessory.addService(this.platform.Service.Valve, '2', '2');
-    const batteryService = this.accessory.getService(this.platform.Service.Battery) || this.accessory.addService(this.platform.Service.Battery);
-
-    this.services.push(service1, service2, batteryService);
+    const service1 = this.addService(this.platform.Service.Valve, '1', '1'); // Use addService from base class
+    const service2 = this.addService(this.platform.Service.Valve, '2', '2'); // Use addService from base class
+    const batteryService = this.addService(this.platform.Service.Battery); // Use addService from base class
 
     this.configureSprinkler();
     this.removeStaleServices();
-  }
-
-  /**
-   * Sets the accessory information (Manufacturer, Model, SerialNumber).
-   */
-  public setAccessoryInformation(): void {
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
-      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', ') ?? 'N/A')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
-  }
-
-  /**
-   * Determines if the given device function is supported by the accessory.
-   * @param functionName The name of the device function.
-   * @returns True if the function is supported, otherwise false.
-   */
-  public supportsFunction(functionName: string): boolean {
-    return this.device.functions.some(f => f.name === functionName);
   }
 
   /**
@@ -254,31 +229,5 @@ export class SprinklerAccessory implements HubspaceAccessory {
 
     this.log.debug(`${this.device.name}: Triggered GET Battery Level: ${value}`);
     return value!;
-  }
-
-  /**
-   * Configures the name for a service.
-   * @param service The service to configure.
-   * @param name The name to set.
-   */
-  private configureName(service: Service, name: string): void {
-    service.setCharacteristic(this.platform.Characteristic.Name, name);
-    service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
-    this.log.info(`Configured service name: ${name}`);
-  }
-
-  /**
-   * Removes stale services that are no longer used.
-   */
-  private removeStaleServices(): void {
-    const existingServices = this.accessory.services;
-    const validServices = this.services.map(service => service.UUID);
-
-    existingServices.forEach(service => {
-      if (!validServices.includes(service.UUID)) {
-        this.accessory.removeService(service);
-        this.log.info(`Removed stale service: ${service.displayName}`);
-      }
-    });
   }
 }
