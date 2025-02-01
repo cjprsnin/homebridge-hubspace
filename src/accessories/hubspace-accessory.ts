@@ -11,19 +11,6 @@ export abstract class HubspaceAccessory {
   public services: Service[] = [];
   public log: Logger;
   public config: PlatformConfig;
-  public deviceService: DeviceService;import { PlatformConfig, Logger, PlatformAccessory, Service, WithUUID } from 'homebridge';
-import { Device } from '../models/device';
-import { DeviceFunction } from '../models/device-functions';
-import { HubspacePlatform } from '../platform';
-import { DeviceService } from '../services/device.service';
-
-/**
- * Base class for Hubspace accessories
- */
-export abstract class HubspaceAccessory {
-  public services: Service[] = [];
-  public log: Logger;
-  public config: PlatformConfig;
   public deviceService: DeviceService;
   protected readonly device: Device;
 
