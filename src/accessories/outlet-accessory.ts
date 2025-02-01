@@ -27,11 +27,11 @@ export class OutletAccessory implements HubspaceAccessory {
       .onSet(this.setOn.bind(this));
   }
 
-  private async getOn(): Promise<CharacteristicValue> {
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
-    const value = await this.platform.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[this.outletIndex].key);
-    return value ?? false; // Ensure a boolean is returned
-  }
+ private async getOn(): Promise<CharacteristicValue> {
+  const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
+  const value = await this.platform.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[this.outletIndex].key);
+  return value ?? false; // Ensure a boolean is returned
+}
 
   private async setOn(value: CharacteristicValue): Promise<void> {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
