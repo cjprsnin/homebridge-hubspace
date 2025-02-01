@@ -50,6 +50,7 @@ export class createAccessoryForDevice {
         // Create an OutletAccessory for outlet devices
         const outletIndex = additionalData?.outletIndex ?? 0; // Extract outletIndex from additionalData
         return new OutletAccessory(platform, accessory, device, outletIndex, additionalData);
+        this.platform.log.info(`Initializing ${device.name} (${device.type})`);
 
       case DeviceType.MultiOutlet:
         // Create a MultiOutletAccessory for multi-outlet devices
