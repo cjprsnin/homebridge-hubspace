@@ -19,41 +19,37 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
   private readonly _discoveryService: DiscoveryService;
   private _isInitialized = false;
 
-  constructor(
-    public readonly log: Logger,
-    public readonly config: PlatformConfig,
-    public readonly api: API
-  ) {
-    // Validate configuration
-    if (!isConfigValid(config)) {
-      this.log.error('Configuration is invalid. Platform will not start.');
-      return;
-    }
-
-    // Initialize TokenService as a singleton
-    TokenService.init(this.config.username, this.config.password);
-
-    // Initialize services
-    this._discoveryService = new DiscoveryService(this.config.baseURL, TokenService.instance.getToken() ?? undefined);
-    this.accountService = new AccountService(this.config.baseURL, TokenService.instance, this.log);
-    this.deviceService = new DeviceService(this);
-
-    // Handle platform launch
-    this.api.on('didFinishLaunching', async () => {
-      try {
-        await this.accountService.loadAccount();
-        const devices = await this._discoveryService.discoverDevices();
-        // Handle discovered devices (e.g., register them with Homebridge)
-        this.log.info(`Discovered ${devices.length} devices.`);
-      } catch (ex) {
-        this.log.error('Failed to load account or discover devices:', ex);
-      }
-    });
-
-    // Mark platform as initialized
-    this._isInitialized = true;
-    this.log.info('HubspacePlatform initialized successfully.');
+constructor(
+  public readonly log: Logger,
+  public readonly config: PlatformConfig,
+  public readonly api: API
+) {
+  if (!isConfigValid(config)) {
+    this.log.error('Configuration is invalid. Platform will not start.');
+    return;
   }
+
+  TokenService.init(this.config.username, this.config.password);
+
+  // Ensure assignment happens here
+  this._discoveryService = new DiscoveryService(this.config.baseURL, TokenService.instance.getToken() ?? undefined);
+  this.accountService = new AccountService(this.config.baseURL, TokenService.instance, this.log);
+  this.deviceService = new DeviceService(this);
+
+  this.api.on('didFinishLaunching', async () => {
+    try {
+      await this.accountService.loadAccount();
+      const devices = await this._discoveryService.discoverDevices();
+      this.log.info(`Discovered ${devices.length} devices.`);
+    } catch (ex) {
+      this.log.error('Failed to load account or discover devices:', ex);
+    }
+  });
+
+  this._isInitialized = true;
+  this.log.info('HubspacePlatform initialized successfully.');
+}
+
 
   configureAccessory(accessory: PlatformAccessory) {
     if (!this._isInitialized) {
