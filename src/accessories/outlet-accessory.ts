@@ -97,6 +97,16 @@ export class OutletAccessory implements HubspaceAccessory {
     this.log.info(`Configured service name: ${name}`);
   }
 
+  protected removeStaleServices(): void {
+    const existingServices = this.accessory.services;
+    const validServices = this.services.map(service => service.UUID);
+
+    existingServices.forEach(service => {
+      if (!validServices.includes(service.UUID)) {
+        this.accessory.removeService(service);
+      }
+    });
+  }
   /**
    * Returns the list of services provided by the accessory.
    * @returns The list of services.
