@@ -81,7 +81,7 @@ protected setAccessoryInformation(): void {
    * Abstract method to initialize the service.
    * Must be implemented by derived classes.
    */
-  protected abstract initializeService(): void;
+  protected abstract initializeService(): void;{
 }
 
   /**
