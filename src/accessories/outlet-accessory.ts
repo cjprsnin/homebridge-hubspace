@@ -1,6 +1,7 @@
 import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device, DeviceFunction } from '../models/device';
+import { DeviceFunction } from '../models/device-functions';
 import { DeviceFunctionDef } from '../models/device-function-def';
 import { AdditionalData } from './device-accessory-factory';
 import { HubspaceAccessory } from './hubspace-accessory';
@@ -40,7 +41,7 @@ export class OutletAccessory extends HubspaceAccessory {
   }
 
   private async getOn(): Promise<CharacteristicValue> {
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
+    const func = DeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
     const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[this.outletIndex].key);
     this.log.debug(`${this.device.name}: Received ${value} from Hubspace Power`);
     return value ?? false; // Ensure a boolean is returned
@@ -48,7 +49,7 @@ export class OutletAccessory extends HubspaceAccessory {
 
   private async setOn(value: CharacteristicValue): Promise<void> {
     this.log.debug(`${this.device.name}: Received ${value} from Homekit Power`);
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
+    const func = DeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
     await this.deviceService.setValue(this.device.deviceId, func.deviceValues[this.outletIndex].key, value);
   }
 
