@@ -69,12 +69,19 @@ export abstract class HubspaceAccessory {
    * Sets the accessory information (Manufacturer, Model, SerialNumber).
    */
   protected setAccessoryInformation(): void {
-    this.accessory
-      .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
-      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', ') ?? 'N/A')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
+  let infoService = this.accessory.getService(this.platform.Service.AccessoryInformation);
+
+  if (!infoService) {
+    this.platform.log.warn(`Accessory Information service not found for ${this.accessory.displayName}, adding it.`);
+    infoService = this.accessory.addService(this.platform.Service.AccessoryInformation);
   }
+
+  infoService
+    .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
+    .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', ') ?? 'N/A')
+    .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
+}
+
 
   /**
    * Determines if the given device function is supported by the accessory.
