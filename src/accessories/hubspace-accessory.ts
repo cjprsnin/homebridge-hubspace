@@ -49,20 +49,20 @@ export abstract class HubspaceAccessory {
     this.setAccessoryInformation();
   }
 
-  /**
-   * Initializes a service by either retrieving an existing one or adding a new one.
-   */
-  private initializeService(service: Service | WithUUID<typeof Service>): void {
-    const initializedService =
-      this.accessory.getServiceById(
-        (service as Service).displayName,
-        (service as Service).subtype!
-      ) ||
-      this.accessory.getService(service as WithUUID<typeof Service>) ||
-      this.accessory.addService(service as Service);
+/**
+ * Adds a service to the accessory.
+ */
+protected addService(service: Service | WithUUID<typeof Service>): void {
+  const initializedService =
+    this.accessory.getServiceById(
+      (service as Service).displayName,
+      (service as Service).subtype!
+    ) ||
+    this.accessory.getService(service as WithUUID<typeof Service>) ||
+    this.accessory.addService(service as Service);
 
-    this.services.push(initializedService);
-  }
+  this.services.push(initializedService);
+}
 
   /**
    * Sets the accessory information (Manufacturer, Model, SerialNumber).
@@ -137,17 +137,7 @@ export abstract class HubspaceAccessory {
   /**
  * Adds a service to the accessory.
  */
-private addService(service: Service | WithUUID<typeof Service>): void {
-  const initializedService =
-    this.accessory.getServiceById(
-      (service as Service).displayName,
-      (service as Service).subtype!
-    ) ||
-    this.accessory.getService(service as WithUUID<typeof Service>) ||
-    this.accessory.addService(service as Service);
-
-  this.services.push(initializedService);
-}
+public abstract initializeService(): void;
 
   /**
    * Abstract method to update the state of the accessory.
