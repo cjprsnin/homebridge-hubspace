@@ -1,6 +1,6 @@
 import { HubspacePlatform } from '../platform';
 import { Endpoints } from '../api/endpoints';
-import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
+import { HttpClientFactory } from '../api/http-client-factory';
 import { AxiosError, AxiosResponse } from 'axios';
 import { DeviceStatusResponse } from '../responses/device-status-response';
 import { CharacteristicValue } from 'homebridge';
@@ -12,11 +12,12 @@ import { TokenService } from './token.service';
  * Service for interacting with devices
  */
 export class DeviceService {
-  private readonly _httpClient = createHttpClientWithBearerInterceptor({
-    baseURL: Endpoints.API_BASE_URL,
-  });
+  private _httpClient: ReturnType<typeof HttpClientFactory.createHttpClient>;
 
-  constructor(private readonly _platform: HubspacePlatform) {}
+  constructor(private readonly _platform: HubspacePlatform) {
+    // Initialize the HTTP client
+    this._httpClient = HttpClientFactory.createHttpClient(_platform.config.baseURL);
+  }
 
   /**
    * Ensures a valid token is available
@@ -26,6 +27,8 @@ export class DeviceService {
     if (!token) {
       throw new Error('Failed to retrieve access token.');
     }
+    // Set the token in the HTTP client headers
+    this._httpClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
   /**
@@ -102,6 +105,34 @@ export class DeviceService {
   }
 
   /**
+   * Gets a value for attribute as boolean
+   * @param deviceId ID of a device
+   * @param key ID of the attribute to get
+   * @returns Boolean value
+   */
+  public async getValueAsBoolean(deviceId: string, key: string): Promise<boolean> {
+    const value = await this.getValue(deviceId, key);
+    if (typeof value === 'string') {
+      return value === '01'; // Convert '01' to true, anything else to false
+    }
+    return !!value; // Fallback to truthy/falsy check
+  }
+
+  /**
+   * Gets a value for attribute as integer
+   * @param deviceId ID of a device
+   * @param attributeId ID of the attribute to get
+   * @returns Integer value
+   */
+  public async getValueAsInteger(deviceId: string, attributeId: string): Promise<number | undefined> {
+    const value = await this.getValue(deviceId, attributeId);
+    if (typeof value === 'string') {
+      return parseInt(value, 10);
+    }
+    return undefined;
+  }
+
+  /**
    * Converts a characteristic value to a string representation
    * @param value Value to convert
    * @returns String representation of the value
@@ -122,24 +153,7 @@ export class DeviceService {
     this._platform.log.warn('Unsupported value type:', typeof value);
     throw new Error('The value type is not supported.');
   }
-/**
-   * Gets a value for attribute as boolean
-   * @param deviceId ID of a device
-   * @param attributeId ID of the attribute to get
-   * @returns Boolean value
-   */
-  public async getValueAsBoolean(deviceId: string, attributeId: string): Promise<boolean | undefined> {
-    const value = await this.getValue(deviceId, attributeId);
-    return value === '1';
-  }
 
-   public async getValueAsInteger(deviceId: string, attributeId: string): Promise<number | undefined> {
-    const value = await this.getValue(deviceId, attributeId);
-    if (typeof value === 'string') {
-      return parseInt(value, 10);
-    }
-    return undefined;
-  }
   /**
    * Handles errors from API requests
    * @param error Axios error
