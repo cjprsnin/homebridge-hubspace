@@ -38,8 +38,8 @@ export abstract class HubspaceAccessory {
     services: (Service | WithUUID<typeof Service>)[]
   ) {
     // Initialize services
-    services.forEach(service => this.initializeService(service));
-
+    services.forEach(service => this.addService(service));
+    
     this.config = platform.config;
     this.log = platform.log;
     this.deviceService = platform.deviceService;
@@ -134,7 +134,20 @@ export abstract class HubspaceAccessory {
    * Abstract method to initialize the service.
    * Must be implemented by derived classes.
    */
-  public abstract initializeService(): void;
+  /**
+ * Adds a service to the accessory.
+ */
+private addService(service: Service | WithUUID<typeof Service>): void {
+  const initializedService =
+    this.accessory.getServiceById(
+      (service as Service).displayName,
+      (service as Service).subtype!
+    ) ||
+    this.accessory.getService(service as WithUUID<typeof Service>) ||
+    this.accessory.addService(service as Service);
+
+  this.services.push(initializedService);
+}
 
   /**
    * Abstract method to update the state of the accessory.
