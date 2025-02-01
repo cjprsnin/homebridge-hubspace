@@ -32,22 +32,29 @@ export abstract class HubspaceAccessory {
     [DeviceFunction.FanLightPower]: 'Fan Light Power',
   };
 
-  constructor(
-    protected readonly platform: HubspacePlatform,
-    protected readonly accessory: PlatformAccessory,
-    services: (Service | WithUUID<typeof Service>)[]
-  ) {
-    // Initialize services
-    services.forEach(service => this.addService(service));
+constructor(
+  protected readonly platform: HubspacePlatform,
+  protected readonly accessory: PlatformAccessory,
+  services: (Service | WithUUID<typeof Service>)[]
+) {
+  // Initialize services
+  services.forEach(service => this.addService(service));
 
-    this.config = platform.config;
-    this.log = platform.log;
-    this.deviceService = platform.deviceService;
-    this.device = accessory.context.device;
-
-    // Set accessory information
-    this.setAccessoryInformation();
+  this.config = platform.config;
+  this.log = platform.log;
+  this.deviceService = platform.deviceService;
+  
+  // Ensure device context is set
+  if (!accessory.context.device) {
+    this.platform.log.error(`Device context missing for accessory: ${accessory.displayName}`);
+    return; // Prevent further execution if no device is found
   }
+
+  this.device = accessory.context.device;
+
+  // Set accessory information
+  this.setAccessoryInformation();
+}
 
   /**
    * Adds a service to the accessory and returns it.
@@ -72,15 +79,21 @@ export abstract class HubspaceAccessory {
   let infoService = this.accessory.getService(this.platform.Service.AccessoryInformation);
 
   if (!infoService) {
-    this.platform.log.warn(`Accessory Information service not found for ${this.accessory.displayName}, adding it.`);
+    this.platform.log.warn(`Accessory Information service missing for ${this.accessory.displayName}, adding it.`);
     infoService = this.accessory.addService(this.platform.Service.AccessoryInformation);
+  }
+
+  if (!infoService) {
+    this.platform.log.error(`Failed to add Accessory Information service for ${this.accessory.displayName}`);
+    return;
   }
 
   infoService
     .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
-    .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', ') ?? 'N/A')
+    .setCharacteristic(this.platform.Characteristic.Model, this.device.model?.join(', ') ?? 'N/A')
     .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
 }
+
 
 
   /**
