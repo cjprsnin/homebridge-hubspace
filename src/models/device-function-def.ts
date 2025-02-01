@@ -1,32 +1,23 @@
-import { HubspaceAccessory } from './hubspace-accessory';
+import { HubspaceAccessory } from '../accessories/hubspace-accessory'; // Correct import path
+import { DeviceFunctionResponse, DeviceFunctionValues, DeviceValues } from '../models/device-functions'; // Ensure correct import
+
 /**
- * Device function definition
+ * Gets the device function definition.
+ * @param functions Device functions.
+ * @param functionName Function name.
+ * @param outletIndex Outlet index.
+ * @returns Device function response or undefined.
  */
 export function getDeviceFunctionDef(
   functions: DeviceFunctionResponse[],
-  functionName: DeviceFunction,
-  functionInstance?: string,
+  functionName: string,
   outletIndex?: number
 ): DeviceFunctionResponse | undefined {
-  const functionClass = HubspaceAccessory.functionClassMap[functionName];
-  if (!functionClass) {
-    throw new Error(`Function class not found for function: ${functionName}`);
-  }
-
-  return functions.find((fc) =>
-    fc.functionClass === functionClass &&
-    (!functionInstance || fc.functionInstance === functionInstance) &&
-    (outletIndex !== undefined ? fc.values[0].deviceValues[outletIndex] : true)
+  return functions.find(
+    (func) => func.functionInstance === functionName && (outletIndex === undefined || func.outletIndex === outletIndex)
   );
 }
 
-export interface DeviceFunctionDef{
-    /** API function instance name string */
-    functionInstanceName?: string;
-
-    /** Device function class */
-    functionClass: string;
-}
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: 'power',
