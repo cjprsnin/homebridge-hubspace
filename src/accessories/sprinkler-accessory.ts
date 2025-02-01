@@ -22,8 +22,8 @@ export class SprinklerAccessory extends HubspaceAccessory {
    * Initializes the services for the sprinkler accessory.
    */
   public initializeService(): void {
-    const service1 = this.addService(this.platform.Service.Valve, '1', '1'); // Use addService from base class
-    const service2 = this.addService(this.platform.Service.Valve, '2', '2'); // Use addService from base class
+    const service1 = this.addService(this.platform.Service.Valve); // Use addService from base class
+    const service2 = this.addService(this.platform.Service.Valve); // Use addService from base class
     const batteryService = this.addService(this.platform.Service.Battery); // Use addService from base class
 
     this.configureSprinkler();
