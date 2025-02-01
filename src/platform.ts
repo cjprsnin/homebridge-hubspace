@@ -3,6 +3,7 @@ import { AccountService } from './services/account.service';
 import { DiscoveryService } from './services/discovery.service';
 import { DeviceService } from './services/device.service';
 import { isConfigValid } from './config';
+import { TokenService } from './services/token.service';
 
 /**
  * HomebridgePlatform
