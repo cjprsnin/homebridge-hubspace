@@ -1,7 +1,7 @@
 import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device, DeviceFunction, getDeviceFunctionDef } from '../models/device';
-import { getDeviceFunctionDef } from '../models/device-function-def';
+import { DeviceFunctionDef } from '../models/device-function-def';
 import { AdditionalData } from './device-accessory-factory';
 import { HubspaceAccessory } from './hubspace-accessory';
 
