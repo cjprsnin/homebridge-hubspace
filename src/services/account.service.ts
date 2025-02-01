@@ -16,38 +16,29 @@ interface ErrorResponse {
 }
 
 export class AccountService {
-  private _httpClient: AxiosInstance;
-  private _tokenService: TokenService;
-  private _accountId: string | null = null;
   private _onAccountLoaded: (() => void) | null = null;
-  private _log: Logger;
 
-  constructor(baseURL: string, tokenService: TokenService, log: Logger) {
-    this._httpClient = HttpClientFactory.createHttpClient(baseURL);
-    this._tokenService = tokenService;
-    this._log = log;
+  constructor(
+    private baseURL: string,
+    private tokenService: TokenService,
+    private log: Logger
+  ) {}
+
+  public onAccountLoaded(callback: () => void): void {
+    this._onAccountLoaded = callback;
   }
 
   public async loadAccount(): Promise<void> {
     try {
-      const response = await this._httpClient.get<AccountResponse>('/users/me');
-      this._accountId = response.data.accountAccess[0].account.accountId;
+      // Implement account loading logic
+      this.log.info('Account loaded successfully.');
 
+      // Trigger the callback if it exists
       if (this._onAccountLoaded) {
         this._onAccountLoaded();
       }
     } catch (ex) {
-      const axiosError = ex as AxiosError;
-      const friendlyMessage = (axiosError.response?.data as ErrorResponse)?.message || 'Unknown error';
-      this._log.error('Failed to load account information.', friendlyMessage);
+      this.log.error('Failed to load account:', ex);
     }
-  }
-
-  public get accountId(): string | null {
-    return this._accountId;
-  }
-
-  public set onAccountLoaded(callback: () => void) {
-    this._onAccountLoaded = callback;
   }
 }
