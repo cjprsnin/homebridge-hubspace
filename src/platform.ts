@@ -34,19 +34,19 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     TokenService.init(this.config.username, this.config.password);
 
     // Initialize services
-    this._discoveryService = new DiscoveryService(this.log, this.config.baseURL);
+    this._discoveryService = new DiscoveryService(this.config.baseURL, TokenService.instance.getToken());
     this.accountService = new AccountService(this.config.baseURL, TokenService.instance);
     this.deviceService = new DeviceService(this);
-
-    // Configure callbacks
-    this.accountService.onAccountLoaded = this._discoveryService.discoverDevices.bind(this._discoveryService);
 
     // Handle platform launch
     this.api.on('didFinishLaunching', async () => {
       try {
         await this.accountService.loadAccount();
+        const devices = await this._discoveryService.discoverDevices();
+        // Handle discovered devices (e.g., register them with Homebridge)
+        this.log.info(`Discovered ${devices.length} devices.`);
       } catch (ex) {
-        this.log.error('Failed to load account:', ex);
+        this.log.error('Failed to load account or discover devices:', ex);
       }
     });
 
