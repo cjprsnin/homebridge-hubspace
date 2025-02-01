@@ -12,7 +12,7 @@ import { MultiOutletAccessory } from './multi-outlet-accessory';
 /**
  * Additional data that can be passed to the accessory constructor
  */
-export interface AdditionalData { // Add 'export' here
+export interface AdditionalData {
   outletIndex?: number;
   config?: any; // Optional configuration object
   metadata?: any; // Optional metadata object
@@ -34,6 +34,9 @@ export class createAccessoryForDevice {
     device: Device,
     additionalData?: AdditionalData
   ): HubspaceAccessory {
+    // Log the initialization of the device
+    platform.log.info(`Initializing ${device.name} (${device.type})`);
+
     // Use the correct property name for device type (e.g., device.type or device.deviceType)
     const deviceType = device.type; // Use device.type instead of device.deviceType
 
@@ -50,7 +53,6 @@ export class createAccessoryForDevice {
         // Create an OutletAccessory for outlet devices
         const outletIndex = additionalData?.outletIndex ?? 0; // Extract outletIndex from additionalData
         return new OutletAccessory(platform, accessory, device, outletIndex, additionalData);
-        this.platform.log.info(`Initializing ${device.name} (${device.type})`);
 
       case DeviceType.MultiOutlet:
         // Create a MultiOutletAccessory for multi-outlet devices
