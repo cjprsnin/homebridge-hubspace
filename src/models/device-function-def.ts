@@ -1,7 +1,5 @@
 import { HubspaceAccessory } from '../accessories/hubspace-accessory'; // Correct import path
-import { DeviceFunctionResponse } from '../responses/device-function-response'; // Correct import from responses
-import { DeviceFunction } from './device-function-def';
-import { Logger } from 'homebridge';
+import { DeviceFunctionResponse, DeviceFunction } from '../models/device-functions'; // Import DeviceFunction from device-functions.ts
 
 /**
  * Gets the device function definition.
@@ -23,11 +21,11 @@ export function getDeviceFunctionDef(
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: DeviceFunction.Power,
-  functionInstanceName: 'fan-power'
+  functionInstanceName: 'fan-power',
 };
 
 // Example of a brightness function definition
 const brightnessFunction: DeviceFunctionDef = {
   functionClass: DeviceFunction.Brightness,
-  functionInstanceName: 'default-brightness'
+  functionInstanceName: 'default-brightness',
 };
