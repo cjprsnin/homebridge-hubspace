@@ -8,34 +8,34 @@ import { DeviceService } from '../services/device.service';
  * Base class for Hubspace accessories
  */
 export abstract class HubspaceAccessory {
-  protected readonly services: Service[] = [];
-  protected readonly log: Logger;
-  protected readonly config: PlatformConfig;
-  protected readonly deviceService: DeviceService;
+  public services: Service[] = [];
+  public log: Logger;
+  public config: PlatformConfig;
+  public deviceService: DeviceService;
   protected readonly device: Device;
 
   // Define the mapping between DeviceFunction enum and functionClass strings
   private static functionClassMap: Record<DeviceFunction, string> = {
-    power: 'Power',
-    'fan-power': 'Fan Power',
-    'fan-speed': 'Fan Speed',
-    brightness: 'Brightness',
-    'light-power': 'Light Power',
-    'color-temperature': 'Color Temperature',
-    'color-rgb': 'Color RGB',
+    [DeviceFunction.Power]: 'Power',
+    [DeviceFunction.FanPower]: 'Fan Power',
+    [DeviceFunction.FanSpeed]: 'Fan Speed',
+    [DeviceFunction.Brightness]: 'Brightness',
+    [DeviceFunction.LightPower]: 'Light Power',
+    [DeviceFunction.LightTemperature]: 'Color Temperature',
+    [DeviceFunction.LightColor]: 'Color RGB',
     [DeviceFunction.ColorMode]: '',
     [DeviceFunction.Toggle]: '',
     [DeviceFunction.MaxOnTime]: '',
     [DeviceFunction.BatteryLevel]: '',
     [DeviceFunction.Timer]: '',
     [DeviceFunction.Spigot1]: '',
-    [DeviceFunction.Spigot2]: ''
+    [DeviceFunction.Spigot2]: '',
   };
 
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    services: (Service | WithUUID<typeof Service>)[] 
+    services: (Service | WithUUID<typeof Service>)[]
   ) {
     // Initialize services
     services.forEach(service => this.initializeService(service));
@@ -90,7 +90,7 @@ export abstract class HubspaceAccessory {
    * Determines if the given device function is supported by the accessory.
    * Can be overridden by derived classes.
    */
-  protected supportsFunction(deviceFunction: DeviceFunction): boolean {
+  public supportsFunction(deviceFunction: DeviceFunction): boolean {
     const functionClass = HubspaceAccessory.functionClassMap[deviceFunction];
     return this.device.functions.some(
       (func) => func.functionClass === functionClass
@@ -129,4 +129,16 @@ export abstract class HubspaceAccessory {
     );
     this.log.info(`Configured service name: ${name}`);
   }
+
+  /**
+   * Abstract method to initialize the service.
+   * Must be implemented by derived classes.
+   */
+  public abstract initializeService(): void;
+
+  /**
+   * Abstract method to update the state of the accessory.
+   * Must be implemented by derived classes.
+   */
+  public abstract updateState(state: any): void;
 }
