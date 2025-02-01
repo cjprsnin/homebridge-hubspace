@@ -1,5 +1,4 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, Service, Characteristic, PlatformConfig } from 'homebridge';
-import { TokenService } from './services/token.service';
 import { AccountService } from './services/account.service';
 import { DiscoveryService } from './services/discovery.service';
 import { DeviceService } from './services/device.service';
@@ -26,7 +25,7 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
   ) {
     // Initialize services first
     this._discoveryService = new DiscoveryService(this);
-    this.accountService = new AccountService(this.config.baseURL, TokenService.instance, this.log);
+    this.accountService = new AccountService(this.config.baseURL);
     this.deviceService = new DeviceService(this);
 
     // Validate configuration
