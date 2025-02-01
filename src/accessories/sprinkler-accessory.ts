@@ -3,13 +3,14 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
+import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 
-export class SprinklerAccessory extends HubspaceAccessory {
+export class SprinklerAccessory {
   constructor(
-    platform: HubspacePlatform,
-    accessory: PlatformAccessory,
-    device: Device,
-    additionalData?: AdditionalData
+    private readonly platform: HubspacePlatform,
+    private readonly accessory: PlatformAccessory,
+    private readonly device: Device, // Add device parameter
+    private readonly additionalData?: AdditionalData // Add additionalData parameter
   ) {
         super(platform, accessory, [new platform.Service.Valve('1', '1'), new platform.Service.Valve('2', '2'), platform.Service.Battery]);
 
