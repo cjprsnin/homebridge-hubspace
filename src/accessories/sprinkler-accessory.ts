@@ -8,7 +8,8 @@ export class SprinklerAccessory extends HubspaceAccessory {
   constructor(
     platform: HubspacePlatform,
     accessory: PlatformAccessory,
-    additionalData?: any // Add additionalData parameter
+    device: Device,
+    additionalData?: AdditionalData
   ) {
         super(platform, accessory, [new platform.Service.Valve('1', '1'), new platform.Service.Valve('2', '2'), platform.Service.Battery]);
 
