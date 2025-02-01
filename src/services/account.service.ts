@@ -11,6 +11,10 @@ interface AccountResponse {
   }[];
 }
 
+interface ErrorResponse {
+  message: string;
+}
+
 export class AccountService {
   private _httpClient: AxiosInstance;
   private _tokenService: TokenService;
@@ -34,7 +38,7 @@ export class AccountService {
       }
     } catch (ex) {
       const axiosError = ex as AxiosError;
-      const friendlyMessage = axiosError.response?.data?.message || 'Unknown error';
+      const friendlyMessage = (axiosError.response?.data as ErrorResponse)?.message || 'Unknown error';
       this._log.error('Failed to load account information.', friendlyMessage);
     }
   }
