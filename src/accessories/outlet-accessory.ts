@@ -59,4 +59,12 @@ export class OutletAccessory extends HubspaceAccessory {
       value
     );
   }
+   // Implementation of the abstract method from HubspaceAccessory
+  public async updateState(): Promise<void> {
+    const value = await this.getOn();
+    const service = this.getService(this.platform.Service.Outlet);
+    if (service) {
+      service.updateCharacteristic(this.platform.Characteristic.On, value);
+    }
+  }
 }
