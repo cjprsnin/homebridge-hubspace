@@ -1,26 +1,29 @@
 export class TokenService {
+  private static _instance: TokenService;
   private token: string | null = null;
 
-  /**
-   * Sets the authentication token.
-   * @param token - The token to set.
-   */
-  setToken(token: string): void {
+  private constructor() {}
+
+  public static init(username: string, password: string): void {
+    // Initialize the token service
+  }
+
+  public static get instance(): TokenService {
+    if (!TokenService._instance) {
+      TokenService._instance = new TokenService();
+    }
+    return TokenService._instance;
+  }
+
+  public setToken(token: string): void {
     this.token = token;
   }
 
-  /**
-   * Gets the authentication token.
-   * @returns The current token, or null if not set.
-   */
-  getToken(): string | null {
+  public getToken(): string | null {
     return this.token;
   }
 
-  /**
-   * Clears the authentication token.
-   */
-  clearToken(): void {
+  public clearToken(): void {
     this.token = null;
   }
 }
