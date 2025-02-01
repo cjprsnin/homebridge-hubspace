@@ -1,41 +1,42 @@
-import { InternalAxiosRequestConfig } from 'axios';
-import { TokenService } from '../services/token.service';
-import { Logger } from 'homebridge';
+import { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 /**
- * Adds a Bearer token to the request
- * @param config Axios request configuration
- * @param logger Optional logger instance for consistent logging
- * @returns Config with Bearer token
- * @throws Error if no token is available and the request requires authentication
+ * Adds a request interceptor to the Axios instance.
+ * @param client - The Axios instance.
+ * @param token - The authentication token.
  */
-export async function addBearerToken(
-  config: InternalAxiosRequestConfig<unknown>,
-  logger?: Logger
-): Promise<InternalAxiosRequestConfig<unknown>> {
-  try {
-    const token = await TokenService.instance.getToken();
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    } else {
-      const errorMessage = 'No Bearer token found. Authentication is required.';
-      if (logger) {
-        logger.warn(errorMessage);
-      } else {
-        console.warn(errorMessage);
+export function addRequestInterceptor(client: AxiosInstance, token: string): void {
+  client.interceptors.request.use(
+    (config: AxiosRequestConfig) => {
+      // Add authorization header
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
       }
-      throw new Error(errorMessage);
+      return config;
+    },
+    (error: AxiosError) => {
+      // Log or handle request errors
+      console.error('Request interceptor error:', error);
+      return Promise.reject(error);
     }
+  );
+}
 
-    return config;
-  } catch (ex) {
-    const errorMessage = 'Failed to add Bearer token to request.';
-    if (logger) {
-      logger.error(errorMessage, ex);
-    } else {
-      console.error(errorMessage, ex);
+/**
+ * Adds a response interceptor to the Axios instance.
+ * @param client - The Axios instance.
+ */
+export function addResponseInterceptor(client: AxiosInstance): void {
+  client.interceptors.response.use(
+    (response: AxiosResponse) => {
+      // Handle successful responses
+      return response;
+    },
+    (error: AxiosError) => {
+      // Log or handle response errors
+      console.error('Response interceptor error:', error);
+      return Promise.reject(error);
     }
-    throw ex;
-  }
+  );
 }
