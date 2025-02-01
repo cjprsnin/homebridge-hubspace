@@ -167,5 +167,5 @@ try {
   const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0);
   console.log(functionDef); // Check if the correct function definition is returned
 } catch (error) {
-  console.error(error.message);
+  console.error((error as any).message); // Cast error to any to access properties
 }
