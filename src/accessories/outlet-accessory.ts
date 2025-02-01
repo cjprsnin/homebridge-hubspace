@@ -17,7 +17,7 @@ export class OutletAccessory extends HubspaceAccessory {
     this.setAccessoryInformation();
   }
 
-  public initializeService(): void {
+ public initializeService(): void {
     const service = this.addService(this.platform.Service.Outlet); // Use addService from base class
     this.configureName(service, `${this.device.name} Outlet ${this.outletIndex + 1}`);
 
@@ -29,6 +29,7 @@ export class OutletAccessory extends HubspaceAccessory {
 
     this.removeStaleServices();
   }
+
 
   public updateState(state: any): void {
     const service = this.services[0];
