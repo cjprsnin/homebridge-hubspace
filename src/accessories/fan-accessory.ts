@@ -3,16 +3,17 @@ import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { isNullOrUndefined } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 
 /**
  * Fan accessory for Hubspace platform
  */
-export class FanAccessory extends HubspaceAccessory {
+export class FanAccessory {
   constructor(
-    platform: HubspacePlatform,
-    accessory: PlatformAccessory,
-    device: Device,
-    additionalData?: AdditionalData
+    private readonly platform: HubspacePlatform,
+    private readonly accessory: PlatformAccessory,
+    private readonly device: Device, // Add device parameter
+    private readonly additionalData?: AdditionalData // Add additionalData parameter
   ) {
         super(platform, accessory, [platform.Service.Fanv2]);
 
