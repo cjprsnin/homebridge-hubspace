@@ -23,7 +23,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   /**
    * Initializes the services for the multi-outlet accessory.
    */
-  public initializeService(): void {
+   private initializeService(): void { // Change to private
     for (const child of this.children) {
       const service = this.accessory.getService(child.name) || this.accessory.addService(this.platform.Service.Outlet, child.name);
       this.services.push(service);
