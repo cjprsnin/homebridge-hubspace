@@ -36,4 +36,6 @@ export interface DeviceFunctionResponse{
     functionInstance: string;
     /** Function values */
     values: DeviceFunctionValues[];
+    /** Outlet index (if applicable) */
+    outletIndex?: number;
 }
