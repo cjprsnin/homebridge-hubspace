@@ -24,6 +24,11 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API
   ) {
+    // Initialize services first
+    this._discoveryService = new DiscoveryService(this);
+    this.accountService = new AccountService(this.config.baseURL, TokenService.instance, this.log);
+    this.deviceService = new DeviceService(this);
+
     // Validate configuration
     if (!isConfigValid(config)) {
       this.log.error('Configuration is invalid. Platform will not start.');
@@ -32,11 +37,6 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
 
     // Initialize TokenService as a singleton
     TokenService.init(this.config.username, this.config.password);
-
-    // Initialize services
-    this._discoveryService = new DiscoveryService(this);
-    this.accountService = new AccountService(this.config.baseURL, TokenService.instance, this.log);
-    this.deviceService = new DeviceService(this);
 
     // Configure callbacks
     this.accountService.onAccountLoaded(() => this._discoveryService.discoverDevices());
@@ -55,12 +55,7 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     this.log.info('HubspacePlatform initialized successfully.');
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
-    // Do not restore cached accessories if there was an error during initialization
     if (!this._isInitialized) {
       this.log.warn('Platform not initialized. Skipping cached accessory:', accessory.displayName);
       return;
