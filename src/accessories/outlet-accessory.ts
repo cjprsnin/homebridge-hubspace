@@ -1,19 +1,19 @@
-import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge'; // Import CharacteristicValue
+import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device, DeviceFunction, getDeviceFunctionDef } from '../models';
-import { DeviceService } from '../services/device-service'; // Import DeviceService
+import { DeviceService } from '../services/device-service';
 
 export class OutletAccessory {
-  private deviceService: DeviceService; // Add deviceService property
+  private deviceService: DeviceService;
 
   constructor(
     private readonly platform: HubspacePlatform,
     private readonly accessory: PlatformAccessory,
     private readonly device: Device,
-    private readonly outletIndex: number, // Add outletIndex parameter
+    private readonly outletIndex: number,
     private readonly additionalData?: any
   ) {
-    this.deviceService = new DeviceService(this.platform); // Initialize deviceService
+    this.deviceService = new DeviceService(this.platform);
     this.configureAccessory();
   }
 
