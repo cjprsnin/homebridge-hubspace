@@ -229,4 +229,53 @@ export class LightAccessory extends HubspaceAccessory {
       const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightColor);
       const rgb = await this.deviceService.getValue(this.device.deviceId, func.values[0].deviceValues[0].key);
       this.throwErrorIfNullOrUndefinedInt(rgb, 'Received Comm Failure for get Hue');
-      [r, g,
+      [r, g, b] = hexToRgb(rgb as string);
+    } else {
+      const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightTemperature);
+      const kelvin = await this.deviceService.getValue(this.device.deviceId, func.values[0].deviceValues[0].key);
+      this.throwErrorIfNullOrUndefinedInt(kelvin, 'Received Comm Failure for get Temperature');
+      [r, g, b] = kelvinToRgb(kelvin as number);
+    }
+
+    const [h, s, v] = rgbToHsv(r, g, b);
+    this.log.debug(`${this.device.name}: sending ${Math.round(s)} to Homebridge for Saturation`);
+    return Math.round(s) as CharacteristicValue;
+  }
+
+  private async setSaturation(i: number, value: CharacteristicValue): Promise<void> {
+    this.setColorMode(1);
+
+    if (this.hue === -1 && this.saturation === -1) {
+      this.saturation = value;
+      this.log.debug(`${this.device.name}: Received ${value} from Homekit Saturation, waiting for Hue`);
+      return;
+    } else if (this.hue !== -1 && this.saturation === -1) {
+      const [r, g, b] = hsvToRgb(this.hue as number, value as number, 100);
+      this.hue = -1;
+      const hexRgb = rgbToHex(r, g, b);
+      this.log.debug(`${this.device.name}: Received ${value} from Homekit Saturation, sending ${hexRgb} to Hubspace Color RGB`);
+      const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightColor);
+      this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, hexRgb);
+    } else {
+      this.saturation = value;
+      this.log.warn(`${this.device.name}: Received another ${value} from Homekit Saturation, but cannot send without a Hue value`);
+    }
+  }
+
+  private setColorMode(value: number): void {
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.ColorMode);
+    this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, value);
+  }
+
+  private throwErrorIfNullOrUndefined(value: any, message: string): void {
+    if (isNullOrUndefined(value)) {
+      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    }
+  }
+
+  private throwErrorIfNullOrUndefinedInt(value: any, message: string): void {
+    if (isNullOrUndefined(value) || value === -1) {
+      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+    }
+  }
+}
