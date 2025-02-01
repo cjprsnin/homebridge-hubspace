@@ -55,18 +55,12 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     this.log.info('HubspacePlatform initialized successfully.');
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
-    // Do not restore cached accessories if there was an error during initialization
     if (!this._isInitialized) {
       this.log.warn('Platform not initialized. Skipping cached accessory:', accessory.displayName);
       return;
     }
 
-    // Configure the cached accessory
     this._discoveryService.configureCachedAccessory(accessory);
     this.log.info('Restored cached accessory:', accessory.displayName);
   }
