@@ -1,6 +1,6 @@
 import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
-import { Device, DeviceFunction, getDeviceFunctionDef } from '../models/device'; // Fix import path
+import { Device, DeviceFunction, getDeviceFunctionDef } from '../models/device'; // Correct import path
 import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 
 export class OutletAccessory implements HubspaceAccessory {
