@@ -3,16 +3,14 @@ import { HubspacePlatform } from '../platform';
 import { PlatformAccessory } from 'homebridge';
 import { OutletAccessory } from './outlet-accessory';
 import { Device } from '../models/device';
+import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 
-/**
- * Handles multi-outlet devices (parent device)
- */
-export class MultiOutletAccessory extends HubspaceAccessory {
+export class MultiOutletAccessory {
   constructor(
-    platform: HubspacePlatform,
-    accessory: PlatformAccessory,
-    children: Device[], // Array of child devices (outlets)
-    additionalData?: AdditionalData
+    private readonly platform: HubspacePlatform,
+    private readonly accessory: PlatformAccessory,
+    private readonly children: Device[],
+    private readonly additionalData?: AdditionalData // Add additionalData parameter
   ) {
     super(platform, accessory, [platform.Service.Outlet]);
 
