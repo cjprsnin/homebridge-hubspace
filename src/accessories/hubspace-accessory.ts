@@ -52,7 +52,7 @@ export abstract class HubspaceAccessory {
 /**
  * Adds a service to the accessory.
  */
-protected addService(service: Service | WithUUID<typeof Service>): void {
+protected addService(service: Service | WithUUID<typeof Service>): Service {
   const initializedService =
     this.accessory.getServiceById(
       (service as Service).displayName,
@@ -62,6 +62,7 @@ protected addService(service: Service | WithUUID<typeof Service>): void {
     this.accessory.addService(service as Service);
 
   this.services.push(initializedService);
+  return initializedService; // Return the created service
 }
 
   /**
