@@ -17,7 +17,10 @@ export function getDeviceFunctionDef(
     (func) => func.functionInstance === functionName && (outletIndex === undefined || func.outletIndex === outletIndex)
   );
 }
-
+export interface DeviceFunctionDef {
+  functionClass: DeviceFunction;
+  functionInstanceName: string;
+}
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: 'power',
