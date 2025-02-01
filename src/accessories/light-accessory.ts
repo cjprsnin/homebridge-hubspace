@@ -9,42 +9,29 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 /**
  * Light accessory for Hubspace platform
  */
-export class LightAccessory implements HubspaceAccessory {
-  public services: Service[] = [];
-  public log = this.platform.log;
-  public config = this.platform.config;
-  public deviceService = this.platform.deviceService;
-
+export class LightAccessory extends HubspaceAccessory {
   private hue: CharacteristicValue = -1;
   private saturation: CharacteristicValue = -1;
 
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    public readonly device: Device, // Change from protected to public
+    protected readonly device: Device,
     private readonly additionalData?: AdditionalData
   ) {
-    this.initializeService();
-    this.setAccessoryInformation();
+    super(platform, accessory, [platform.Service.Lightbulb]);
   }
 
   public initializeService(): void {
-    const service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
-    this.services.push(service);
-
+    const service = this.addService(this.platform.Service.Lightbulb);
     this.configurePower(0);
     this.configureBrightness(0);
     this.configureName(this.services[0], this.accessory.displayName);
 
     // Configure color temperature or RGB color if supported
     if (this.configureColor(0) && this.config.dualColorSpace) {
-      const service = new this.platform.Service.Lightbulb('2', '2');
-      const initializedService =
-        this.accessory.getServiceById(service.displayName, service.subtype!) ||
-        this.accessory.addService(service);
-      this.services.push(initializedService);
-
-      this.configureName(this.services[1], this.accessory.displayName + ' Temperature');
+      const secondService = this.addService(new this.platform.Service.Lightbulb('2', '2'));
+      this.configureName(secondService, this.accessory.displayName + ' Temperature');
       this.configurePower(1);
       this.configureBrightness(1);
       this.configureTemperature(1);
@@ -55,19 +42,21 @@ export class LightAccessory implements HubspaceAccessory {
     this.removeStaleServices();
   }
 
-  setAccessoryInformation(): void {
-    this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer)
-      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', '))
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId);
-  }
-
-  supportsFunction(functionName: string): boolean {
-    return this.device.functions.some(f => f.name === functionName);
-  }
-
-  updateState(state: any): void {
-    // Update the state of the accessory
+  public updateState(state: any): void {
+    // Update the state of the accessory based on the provided state object
+    if (state.power !== undefined) {
+      this.services[0].updateCharacteristic(this.platform.Characteristic.On, state.power);
+    }
+    if (state.brightness !== undefined) {
+      this.services[0].updateCharacteristic(this.platform.Characteristic.Brightness, state.brightness);
+    }
+    if (state.colorTemperature !== undefined) {
+      this.services[0].updateCharacteristic(this.platform.Characteristic.ColorTemperature, state.colorTemperature);
+    }
+    if (state.hue !== undefined && state.saturation !== undefined) {
+      this.services[0].updateCharacteristic(this.platform.Characteristic.Hue, state.hue);
+      this.services[0].updateCharacteristic(this.platform.Characteristic.Saturation, state.saturation);
+    }
   }
 
   private configurePower(i: number): void {
@@ -240,69 +229,4 @@ export class LightAccessory implements HubspaceAccessory {
       const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightColor);
       const rgb = await this.deviceService.getValue(this.device.deviceId, func.values[0].deviceValues[0].key);
       this.throwErrorIfNullOrUndefinedInt(rgb, 'Received Comm Failure for get Hue');
-      [r, g, b] = hexToRgb(rgb as string);
-    } else {
-      const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightTemperature);
-      const kelvin = await this.deviceService.getValue(this.device.deviceId, func.values[0].deviceValues[0].key);
-      this.throwErrorIfNullOrUndefinedInt(kelvin, 'Received Comm Failure for get Temperature');
-      [r, g, b] = kelvinToRgb(kelvin as number);
-    }
-
-    const [h, s, v] = rgbToHsv(r, g, b);
-    this.log.debug(`${this.device.name}: sending ${Math.round(s)} to Homebridge for Saturation`);
-    return Math.round(s) as CharacteristicValue;
-  }
-
-  private async setSaturation(i: number, value: CharacteristicValue): Promise<void> {
-    this.setColorMode(1);
-
-    if (this.hue === -1 && this.saturation === -1) {
-      this.saturation = value;
-      this.log.debug(`${this.device.name}: Received ${value} from Homekit Saturation, waiting for Hue`);
-      return;
-    } else if (this.hue !== -1 && this.saturation === -1) {
-      const [r, g, b] = hsvToRgb(this.hue as number, value as number, 100);
-      this.hue = -1;
-      const hexRgb = rgbToHex(r, g, b);
-      this.log.debug(`${this.device.name}: Received ${value} from Homekit Saturation, sending ${hexRgb} to Hubspace Color RGB`);
-      const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.LightColor);
-      this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, hexRgb);
-    } else {
-      this.saturation = value;
-      this.log.warn(`${this.device.name}: Received another ${value} from Homekit Saturation, but cannot send without a Hue value`);
-    }
-  }
-
-  private setColorMode(value: number): void {
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.ColorMode);
-    this.deviceService.setValue(this.device.deviceId, func.values[0].deviceValues[0].key, value);
-  }
-
-  private throwErrorIfNullOrUndefined(value: any, message: string): void {
-    if (isNullOrUndefined(value)) {
-      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-    }
-  }
-
-  private throwErrorIfNullOrUndefinedInt(value: any, message: string): void {
-    if (isNullOrUndefined(value) || value === -1) {
-      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
-    }
-  }
-
-  private removeStaleServices(): void {
-    // Remove any stale services that are no longer needed
-    const existingServices = this.accessory.services;
-    const validServices = this.services.map(service => service.UUID);
-
-    existingServices.forEach(service => {
-      if (!validServices.includes(service.UUID)) {
-        this.accessory.removeService(service);
-      }
-    });
-  }
-
-  private configureName(service: Service, name: string): void {
-    service.setCharacteristic(this.platform.Characteristic.Name, name);
-  }
-}
+      [r, g,
