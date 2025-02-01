@@ -3,15 +3,17 @@ import { HubspacePlatform } from '../platform';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { isNullOrUndefined, normalizeValue, hexToRgb, rgbToHsv, hsvToRgb, rgbToHex, rgbToMired, kelvinToRgb, clamp } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
 
 /**
  * Light accessory for Hubspace platform
  */
-export class LightAccessory extends HubspaceAccessory {
+export class LightAccessory {
   constructor(
-    platform: HubspacePlatform,
-    accessory: PlatformAccessory,
-    additionalData?: any // Add additionalData parameter
+    private readonly platform: HubspacePlatform,
+    private readonly accessory: PlatformAccessory,
+    private readonly device: Device, // Add device parameter
+    private readonly additionalData?: AdditionalData // Add additionalData parameter
   ) {
     super(platform, accessory, [platform.Service.Lightbulb]);
             this.configurePower(0);
