@@ -14,6 +14,7 @@ import { DeviceFunction } from '../models/device-functions';
  * Additional data that can be passed to the accessory constructor
  */
 interface AdditionalData {
+  outletIndex?: number;
   config?: any; // Optional configuration object
   metadata?: any; // Optional metadata object
 }
@@ -27,13 +28,9 @@ interface AdditionalData {
  * @returns {@link HubspaceAccessory}
  * @throws If the device type is not supported.
  */
-export function createAccessoryForDevice(
-  device: Device,
-  platform: HubspacePlatform,
-  accessory: PlatformAccessory,
-  additionalData?: AdditionalData
-): HubspaceAccessory {
-  switch (device.type) {
+export class DeviceAccessoryFactory {
+  static createAccessory(platform: HubspacePlatform, accessory: PlatformAccessory, device: Device, additionalData?: AdditionalData): HubspaceAccessory {
+    switch (device.deviceType) {
     case DeviceType.Light:
       // Create a LightAccessory for light devices
       return new LightAccessory(platform, accessory, additionalData);
@@ -43,9 +40,9 @@ export function createAccessoryForDevice(
       return new FanAccessory(platform, accessory, additionalData);
 
     case DeviceType.Outlet:
-      // Create an OutletAccessory for single-outlet devices
-      return new OutletAccessory(platform, accessory, device, additionalData);
-
+      const outletIndex = additionalData?.outletIndex ?? 0; // Extract outletIndex from additionalData
+        return new OutletAccessory(platform, accessory, device, outletIndex, additionalData);
+      
     case DeviceType.MultiOutlet:
       // Create a MultiOutletAccessory for multi-outlet devices
       if (!device.children || device.children.length === 0) {
