@@ -7,7 +7,7 @@ import { TokenService } from '../services/token.service';
  * @returns Config with Bearer token
  */
 export async function addBearerToken(config: InternalAxiosRequestConfig<unknown>): Promise<InternalAxiosRequestConfig<unknown>>{
-    const token = await TokenService.instance.getToken();
+    const token = await TokenResponse.instance.getToken();
 
     if(token){
         config.headers.Authorization = `Bearer ${token}`;
