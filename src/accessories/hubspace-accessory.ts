@@ -30,6 +30,7 @@ export abstract class HubspaceAccessory {
     [DeviceFunction.Timer]: '',
     [DeviceFunction.Spigot1]: '',
     [DeviceFunction.Spigot2]: '',
+    [DeviceFunction.FanLightPower]: 'Fan Light Power', // Add this if missing
   };
 
   constructor(
@@ -68,35 +69,29 @@ protected addService(service: Service | WithUUID<typeof Service>): Service {
   /**
    * Sets the accessory information (Manufacturer, Model, SerialNumber).
    */
-  private setAccessoryInformation(): void {
+protected setAccessoryInformation(): void {
     this.accessory
       .getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(
-        this.platform.Characteristic.Manufacturer,
-        this.device.manufacturer ?? 'N/A'
-      )
-      .setCharacteristic(
-        this.platform.Characteristic.Model,
-        Array.isArray(this.device.model) && this.device.model.length > 0
-          ? this.device.model[0]
-          : 'N/A'
-      )
-      .setCharacteristic(
-        this.platform.Characteristic.SerialNumber,
-        this.device.deviceId ?? 'N/A'
-      );
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, this.device.manufacturer ?? 'N/A')
+      .setCharacteristic(this.platform.Characteristic.Model, this.device.model.join(', '))
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, this.device.deviceId ?? 'N/A');
   }
+
+  /**
+   * Abstract method to initialize the service.
+   * Must be implemented by derived classes.
+   */
+  protected abstract initializeService(): void;
+}
 
   /**
    * Determines if the given device function is supported by the accessory.
    * Can be overridden by derived classes.
    */
-  public supportsFunction(deviceFunction: DeviceFunction): boolean {
-    const functionClass = HubspaceAccessory.functionClassMap[deviceFunction];
-    return this.device.functions.some(
-      (func) => func.functionClass === functionClass
-    );
-  }
+  public supportsFunction(functionName: DeviceFunction): boolean {
+  const functionClass = HubspaceAccessory.functionClassMap[functionName];
+  return this.device.functions.some(f => f.functionClass === functionClass);
+}
 
   /**
    * Removes stale services that are no longer used.
