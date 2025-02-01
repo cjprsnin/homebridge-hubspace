@@ -2,39 +2,36 @@
  * Response for device function
  */
 
-export interface DeviceValues {
-  /** Type of the value (e.g., "status", "temperature") */
-  type: string;
-  /** Unique key id for the value */
-  key: string;
+export interface DeviceValues{
+    /** Device values */
+    type: string;
+    /** key id */
+    key: string;
 }
 
-export interface ValuesRange {
-  /** Minimum allowed value */
-  min: number;
-  /** Maximum allowed value */
-  max: number;
-  /** Step increment for value adjustments */
-  step: number;
+export interface ValuesRange{
+    /** miniumum value */
+    min: number;
+    /** maximum value */
+    max: number;
+    /** step value */
+    step: number;
 }
 
-export interface DeviceFunctionValues {
-  /** Name of the value (e.g., "power", "brightness") */
-  name: string;
-  /** Possible values for the function */
-  deviceValues: DeviceValues[];
-  /** Optional range of values */
-  range?: ValuesRange;
+export interface DeviceFunctionValues{
+    /** Name of the value */
+    name: string;
+    /** Possible values */
+    deviceValues: DeviceValues[];
+    /** Range of Values */
+    range: ValuesRange;
 }
 
-export interface DeviceFunctionResponse {
-  /** Additional device values metadata (e.g., possible statuses or configurations) */
-  deviceValues: DeviceValues[];
-  /** Class of the function (e.g., "power", "lighting") */
-  functionClass: string;
-  /** Instance name of the function (e.g., "on/off", "brightness") */
-  functionInstance: string;
-  /** Function values */
-  values: DeviceFunctionValues[];
-  outletIndex?: number;  // Add this line if it's a possible property
+export interface DeviceFunctionResponse{
+    /** Class of the function */
+    functionClass: string;
+    /** Instance name of the function */
+    functionInstance: string;
+    /** Function values */
+    values: DeviceFunctionValues[];
 }
