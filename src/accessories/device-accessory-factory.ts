@@ -62,3 +62,4 @@ export class DeviceAccessoryFactory {
       throw new Error(`Accessory of type '${device.type}' is not supported.`);
   }
 }
+}
