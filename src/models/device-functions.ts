@@ -107,6 +107,11 @@ export function getDeviceFunctionDef(
   outletIndex?: number,
   logger?: Logger
 ): DeviceFunctionResponse {
+  // Add debug log to show the content of deviceFunctionResponse
+  if (logger) {
+    logger.debug(`Device Function Response: ${JSON.stringify(deviceFunctionResponse)}`);
+  }
+
   // Look for matching functionClass, and optionally functionInstance
   const fc = deviceFunctionResponse.find(
     (fc) =>
@@ -144,32 +149,4 @@ export function getDeviceFunctionDef(
 }
 
 // Sample population of deviceFunctionResponse and testing
-const deviceFunctionResponse: DeviceFunctionResponse[] = [
-  {
-    functionClass: 'power',
-    functionInstance: 'fan-power',
-    values: [
-      {
-        name: 'On/Off',
-        deviceValues: [
-          { type: 'Boolean', key: 'power', values: [] }
-        ],
-        range: { min: 0, max: 1, step: 1 }
-      }
-    ],
-    outletIndex: 0,
-  },
-  // Add other function definitions as needed
-];
-
-// Call the getDeviceFunctionDef function
-try {
-  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0);
-  console.log(functionDef); // Check if the correct function definition is returned
-} catch (error) {
-  if (error instanceof Error) {
-    console.error(`Error: ${error.message}`); // Type guard to access error message safely
-  } else {
-    console.error('An unknown error occurred');
-  }
-}
+const deviceFunctionResponse: DeviceFunction
