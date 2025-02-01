@@ -1,3 +1,13 @@
+import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
+import { HubspacePlatform } from '../platform';
+import { HubspaceAccessory } from './hubspace-accessory';
+import { Device } from '../models/device';
+import { AdditionalData } from './device-accessory-factory';
+import { isNullOrUndefined } from '../utils';
+import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+/**
+ * Fan accessory for Hubspace platform
+ */
 export class FanAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
