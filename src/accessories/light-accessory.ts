@@ -26,7 +26,7 @@ export class LightAccessory extends HubspaceAccessory {
     const service = this.addService(this.platform.Service.Lightbulb);
     this.configurePower(0);
     this.configureBrightness(0);
-    this.configureName(this.services[0], this.accessory.displayName);
+    this.configureName(service, this.accessory.displayName);
 
     // Configure color temperature or RGB color if supported
     if (this.configureColor(0) && this.config.dualColorSpace) {
