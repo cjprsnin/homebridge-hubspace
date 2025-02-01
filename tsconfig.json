@@ -17,7 +17,7 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
     "esModuleInterop": true,
     "skipLibCheck": true, // This can help bypass type checking for declaration files
     "noImplicitAny": false
