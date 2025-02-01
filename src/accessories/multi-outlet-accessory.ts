@@ -11,65 +11,46 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    private readonly children: Device[],
+    protected readonly devices: Device[],
     private readonly additionalData?: AdditionalData
   ) {
-    super(platform, accessory, [platform.Service.Outlet]);
-
-    this.initializeService();
-    this.setAccessoryInformation();
+    super(platform, accessory, devices.map(() => platform.Service.Outlet));
   }
 
-  /**
-   * Initializes the services for the multi-outlet accessory.
-   */
-   private initializeService(): void { // Change to private
-    for (const child of this.children) {
-      const service = this.accessory.getService(child.name) || this.accessory.addService(this.platform.Service.Outlet, child.name);
-      this.services.push(service);
-
-      service.getCharacteristic(this.platform.Characteristic.On)
-        .onGet(() => this.getOn(child.deviceId))
-        .onSet((value) => this.setOn(child.deviceId, value));
-
-      this.configureName(service, child.name);
-    }
+  public initializeService(): void {
+    this.devices.forEach((device, index) => {
+      const service = this.addService(this.platform.Service.Outlet);
+      this.configureName(service, `${device.name} Outlet ${index + 1}`);
+      this.configurePower(index);
+    });
 
     this.removeStaleServices();
   }
 
-  /**
-   * Updates the state of the accessory.
-   * @param state The new state of the accessory.
-   */
   public updateState(state: any): void {
-    // Update the state of each child outlet
-    for (const child of this.children) {
-      const service = this.services.find(s => s.displayName === child.name);
-      if (service) {
-        service.updateCharacteristic(this.platform.Characteristic.On, state[child.deviceId]?.power ?? false);
-      }
+    // Update the state of the accessory
+  }
+
+  private configurePower(index: number): void {
+    this.services[index].getCharacteristic(this.platform.Characteristic.On)
+      .onGet(() => this.getOn(index))
+      .onSet((value) => this.setOn(index, value));
+  }
+
+  private async getOn(index: number): Promise<CharacteristicValue> {
+    const func = getDeviceFunctionDef(this.devices[index].functions, DeviceFunction.Power);
+    const value = await this.deviceService.getValueAsBoolean(this.devices[index].deviceId, func.values[0].deviceValues[0].key);
+
+    if (isNullOrUndefined(value)) {
+      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
     }
+
+    this.log.debug(`${this.devices[index].name}: Received ${value} from Hubspace Power`);
+    return value!;
   }
 
-  /**
-   * Gets the power state of a specific outlet.
-   * @param deviceId The ID of the outlet.
-   * @returns The power state of the outlet.
-   */
-  private async getOn(deviceId: string): Promise<CharacteristicValue> {
-    const value = await this.deviceService.getValueAsBoolean(deviceId, 'power');
-    this.log.debug(`${deviceId}: Received ${value} from Hubspace Power`);
-    return value;
-  }
-
-  /**
-   * Sets the power state of a specific outlet.
-   * @param deviceId The ID of the outlet.
-   * @param value The new power state.
-   */
-  private async setOn(deviceId: string, value: CharacteristicValue): Promise<void> {
-    this.log.debug(`${deviceId}: Received ${value} from Homekit Power`);
-    await this.deviceService.setValue(deviceId, 'power', value);
+  private async setOn(index: number, value: CharacteristicValue): Promise<void> {
+    const func = getDeviceFunctionDef(this.devices[index].functions, DeviceFunction.Power);
+    await this.deviceService.setValue(this.devices[index].deviceId, func.values[0].deviceValues[0].key, value);
   }
 }
