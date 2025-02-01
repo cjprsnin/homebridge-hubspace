@@ -1,6 +1,6 @@
 import { HubspaceAccessory } from '../accessories/hubspace-accessory'; // Correct import path
-import { DeviceFunction, DeviceFunctionResponse, DeviceFunctionDef } from '../models/device-functions'; // Correct import
-
+import { DeviceFunction, DeviceFunctionDef } from '../models/device-functions'; // Correct import
+import { DeviceFunctionResponse } from '../responses/device-function-response';
 /**
  * Gets the device function definition.
  * @param functions Device functions.
