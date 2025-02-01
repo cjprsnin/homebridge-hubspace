@@ -12,7 +12,7 @@ import { MultiOutletAccessory } from './multi-outlet-accessory';
 /**
  * Additional data that can be passed to the accessory constructor
  */
-interface AdditionalData {
+export interface AdditionalData { // Add 'export' here
   outletIndex?: number;
   config?: any; // Optional configuration object
   metadata?: any; // Optional metadata object
