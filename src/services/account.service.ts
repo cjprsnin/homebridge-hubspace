@@ -3,7 +3,7 @@ import { Endpoints } from '../api/endpoints';
 import { AccountResponse } from '../responses/account-response';
 import { Logger } from 'homebridge';
 import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
-import { TokenService } from './token-service';
+import { TokenService } from './token.service';
 import { Device } from '../models/device'; // Import the Device type
 
 /**
