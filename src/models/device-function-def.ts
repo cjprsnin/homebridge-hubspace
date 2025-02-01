@@ -1,5 +1,5 @@
 import { HubspaceAccessory } from '../accessories/hubspace-accessory'; // Correct import path
-import { DeviceFunctionResponse, DeviceFunctionValues, DeviceValues } from '../models/device-functions'; // Ensure correct import
+import { DeviceFunctionResponse, DeviceFunctionDef } from '../models/device-functions'; // Ensure correct import
 
 /**
  * Gets the device function definition.
@@ -26,5 +26,6 @@ const powerFunction: DeviceFunctionDef = {
 
 // Example of a brightness function definition
 const brightnessFunction: DeviceFunctionDef = {
-  functionClass: 'brightness'
+  functionClass: 'brightness',
+  functionInstanceName: 'default-brightness'
 };
