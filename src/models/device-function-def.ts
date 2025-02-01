@@ -1,14 +1,22 @@
 /**
  * Device function definition
  */
-export interface DeviceFunctionDef {
-    /** API function instance name string */
-    functionInstanceName?: string;
+export function getDeviceFunctionDef(
+  functions: DeviceFunctionResponse[],
+  functionName: DeviceFunction,
+  functionInstance?: string,
+  outletIndex?: number
+): DeviceFunctionResponse | undefined {
+  const functionClass = HubspaceAccessory.functionClassMap[functionName];
+  if (!functionClass) {
+    throw new Error(`Function class not found for function: ${functionName}`);
+  }
 
-    /** Device function class */
-    functionClass: string;
+  return functions.find((fc) =>
+    fc.functionClass === functionClass &&
+    (!functionInstance || fc.functionInstance === functionInstance) &&
+    (outletIndex !== undefined ? fc.values[0].deviceValues[outletIndex] : true)
 }
-
 // Example of a power function definition
 const powerFunction: DeviceFunctionDef = {
   functionClass: 'power',
