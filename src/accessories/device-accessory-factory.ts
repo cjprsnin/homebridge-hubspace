@@ -44,7 +44,7 @@ export class DeviceAccessoryFactory {
 
       case DeviceType.Fan:
         // Create a FanAccessory for fan devices
-        return new FanAccessory(configureName,platform, accessory, device, additionalData);
+        return new FanAccessory(platform, accessory, device, additionalData);
 
       case DeviceType.Outlet:
         // Create an OutletAccessory for outlet devices
