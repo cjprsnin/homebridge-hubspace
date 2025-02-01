@@ -1,29 +1,17 @@
-import { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import { InternalAxiosRequestConfig } from 'axios';
+import { TokenService } from '../services/token.service';
 
-export function addRequestInterceptor(client: AxiosInstance, token: string): void {
-  client.interceptors.request.use(
-    (config: InternalAxiosRequestConfig) => {
-      if (token) {
-        config.headers = config.headers || {};
+/**
+ * Adds a Bearer token to the request
+ * @param config Axios request configuration
+ * @returns Config with Bearer token
+ */
+export async function addBearerToken(config: InternalAxiosRequestConfig<unknown>): Promise<InternalAxiosRequestConfig<unknown>>{
+    const token = await TokenService.instance.getToken();
+
+    if(token){
         config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    },
-    (error: AxiosError) => {
-      console.error('Request interceptor error:', error);
-      return Promise.reject(error);
     }
-  );
-}
 
-export function addResponseInterceptor(client: AxiosInstance): void {
-  client.interceptors.response.use(
-    (response: AxiosResponse) => {
-      return response;
-    },
-    (error: AxiosError) => {
-      console.error('Response interceptor error:', error);
-      return Promise.reject(error);
-    }
-  );
+    return config;
 }
