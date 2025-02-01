@@ -168,7 +168,7 @@ try {
   console.log(functionDef); // Check if the correct function definition is returned
 } catch (error) {
   if (error instanceof Error) {
-    console.error(error.message); // Type guard to access error message safely
+    console.error(`Error: ${error.message}`); // Type guard to access error message safely
   } else {
     console.error('An unknown error occurred');
   }
