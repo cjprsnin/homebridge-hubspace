@@ -6,7 +6,7 @@ import { DeviceStatusResponse } from '../responses/device-status-response';
 import { CharacteristicValue } from 'homebridge';
 import { convertNumberToHexReverse } from '../utils';
 import { isAferoError } from '../responses/afero-error-response';
-
+import { TokenResponse} from './toekn.services';
 /**
  * Service for interacting with devices
  */
@@ -22,7 +22,7 @@ export class DeviceService {
    * Ensures a valid token is available
    */
   private async ensureToken(): Promise<void> {
-    const token = await TokenService.instance.getToken();
+    const token = await TokenResponse.instance.getToken();
     if (!token) {
       throw new Error('Failed to retrieve access token.');
     }
