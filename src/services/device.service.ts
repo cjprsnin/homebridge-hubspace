@@ -1,6 +1,6 @@
 import { HubspacePlatform } from '../platform';
 import { Endpoints } from '../api/endpoints';
-import { HttpClientFactory } from '../api/http-client-factory';
+import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
 import { AxiosError, AxiosResponse } from 'axios';
 import { DeviceStatusResponse } from '../responses/device-status-response';
 import { CharacteristicValue } from 'homebridge';
@@ -11,13 +11,16 @@ import { TokenService } from '../services/token.service';
 /**
  * Service for interacting with devices
  */
-export class DeviceService {
-  private _httpClient: ReturnType<typeof HttpClientFactory.createHttpClient>;
+export class DeviceService{
 
-  constructor(private readonly _platform: HubspacePlatform) {
-    // Initialize the HTTP client
-    this._httpClient = HttpClientFactory.createHttpClient(_platform.config.baseURL);
-  }
+    private readonly _httpClient = createHttpClientWithBearerInterceptor({
+        baseURL: Endpoints.API_BASE_URL
+    });
+
+
+    constructor(private readonly _platform: HubspacePlatform){ }
+
+    /**
 
   /**
    * Ensures a valid token is available
