@@ -34,7 +34,7 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     TokenService.init(this.config.username, this.config.password);
 
     // Initialize services
-    this._discoveryService = new DiscoveryService(this.config.baseURL, TokenService.instance.getToken());
+    this._discoveryService = new DiscoveryService(this.config.baseURL, TokenService.instance.getToken() || undefined);
     this.accountService = new AccountService(this.config.baseURL, TokenService.instance);
     this.deviceService = new DeviceService(this);
 
