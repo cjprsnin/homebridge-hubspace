@@ -6,7 +6,7 @@ import { DeviceStatusResponse } from '../responses/device-status-response';
 import { CharacteristicValue } from 'homebridge';
 import { convertNumberToHexReverse } from '../utils';
 import { isAferoError } from '../responses/afero-error-response';
-import { TokenService } from './token-service';
+import { TokenService } from './token.service';
 
 /**
  * Service for interacting with devices
