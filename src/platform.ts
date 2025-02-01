@@ -13,10 +13,10 @@ import { isConfigValid } from './config';
 export class HubspacePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
-  public readonly accountService!: AccountService;
-  public readonly deviceService!: DeviceService;
+  public readonly accountService: AccountService;
+  public readonly deviceService: DeviceService;
 
-  private readonly _discoveryService!: DiscoveryService;
+  private readonly _discoveryService: DiscoveryService;
   private _isInitialized = false;
 
   constructor(
@@ -34,12 +34,14 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
     TokenService.init(this.config.username, this.config.password);
 
     // Initialize services
-    this._discoveryService = new DiscoveryService(this.log);
-    this.accountService = new AccountService(this.log);
+    this._discoveryService = new DiscoveryService(this.log, this.config.baseURL);
+    this.accountService = new AccountService(this.config.baseURL, TokenService.instance);
     this.deviceService = new DeviceService(this);
 
     // Configure callbacks
-    this.accountService.onAccountLoaded(this._discoveryService.discoverDevices.bind(this._discoveryService));
+    this.accountService.onAccountLoaded = this._discoveryService.discoverDevices.bind(this._discoveryService);
+
+    // Handle platform launch
     this.api.on('didFinishLaunching', async () => {
       try {
         await this.accountService.loadAccount();
