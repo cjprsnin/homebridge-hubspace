@@ -1,5 +1,5 @@
 import { TokenService } from './token-service';
-import { HttpClientFactory } from './http-client-factory';
+import { HttpClientFactory } from '../api/http-client-factory';
 import { AxiosInstance } from 'axios';
 
 export class AccountService {
