@@ -13,16 +13,15 @@ export class OutletAccessory extends HubspaceAccessory {
     private readonly outletIndex: number,
     private readonly additionalData?: AdditionalData
   ) {
-    super(platform, accessory, [platform.Service.Outlet]); // Call super with required services
+    super(platform, accessory, [platform.Service.Outlet]);
     this.initializeService();
     this.setAccessoryInformation();
   }
 
   public initializeService(): void {
-    const service = this.addService(this.platform.Service.Outlet); // Use addService from base class
+    const service = this.addService(this.platform.Service.Outlet);
     this.configureName(service, `${this.device.name} Outlet ${this.outletIndex + 1}`);
 
-    // Configure outlet-specific characteristics
     service
       .getCharacteristic(this.platform.Characteristic.On)
       .onGet(() => this.getOn())
@@ -31,23 +30,11 @@ export class OutletAccessory extends HubspaceAccessory {
     this.removeStaleServices();
   }
 
-  public updateState(state: any): void {
-    const service = this.services[0];
-    if (service) {
-      service.updateCharacteristic(this.platform.Characteristic.On, state.power ?? false);
-    }
-  }
-
   private async getOn(): Promise<CharacteristicValue> {
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
-    if (!func || !func.values || !func.values[0] || !func.values[0].deviceValues) {
-      this.log.error(`${this.device.name}: Invalid function definition for OutletPower`);
-      return false;
-    }
-
-    if (this.outletIndex >= func.values[0].deviceValues.length) {
-      this.log.error(`${this.device.name}: Outlet index ${this.outletIndex} is out of bounds`);
-      return false;
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, this.outletIndex);
+    if (!func) {
+      this.log.error(`${this.device.name}: Power function not supported.`);
+      return false; // Return a default value or throw an error
     }
 
     const value = await this.deviceService.getValueAsBoolean(
@@ -60,14 +47,9 @@ export class OutletAccessory extends HubspaceAccessory {
 
   private async setOn(value: CharacteristicValue): Promise<void> {
     this.log.debug(`${this.device.name}: Received ${value} from Homekit Power`);
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
-    if (!func || !func.values || !func.values[0] || !func.values[0].deviceValues) {
-      this.log.error(`${this.device.name}: Invalid function definition for OutletPower`);
-      return;
-    }
-
-    if (this.outletIndex >= func.values[0].deviceValues.length) {
-      this.log.error(`${this.device.name}: Outlet index ${this.outletIndex} is out of bounds`);
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, this.outletIndex);
+    if (!func) {
+      this.log.error(`${this.device.name}: Power function not supported.`);
       return;
     }
 
@@ -76,9 +58,5 @@ export class OutletAccessory extends HubspaceAccessory {
       func.values[0].deviceValues[this.outletIndex].key,
       value
     );
-  }
-
-  public getServices(): Service[] {
-    return this.services;
   }
 }
