@@ -1,29 +1,16 @@
-import axios, { AxiosInstance } from 'axios';
-import { addRequestInterceptor, addResponseInterceptor } from './interceptors';
+import { AxiosInstance, CreateAxiosDefaults } from 'axios';
+import axios from 'axios';
+import { addBearerToken } from './interceptors';
 
-export class HttpClientFactory {
-  /**
-   * Creates and configures an Axios HTTP client.
-   * @param baseURL - The base URL for the API.
-   * @param token - Optional authentication token.
-   * @returns The configured Axios instance.
-   */
-  static createHttpClient(baseURL: string, token?: string): AxiosInstance {
-    const client = axios.create({
-      baseURL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+/**
+ * Creates an HTTP client with Bearer interceptor
+ * @param config HTTP client configuration
+ * @returns HTTP client with Bearer interceptor
+ */
+export function createHttpClientWithBearerInterceptor(config?: CreateAxiosDefaults<unknown> | undefined): AxiosInstance{
+    const client = axios.create(config);
 
-    // Add request interceptor (if token is provided)
-    if (token) {
-      addRequestInterceptor(client, token);
-    }
-
-    // Add response interceptor
-    addResponseInterceptor(client);
+    client.interceptors.request.use(addBearerToken);
 
     return client;
-  }
 }
