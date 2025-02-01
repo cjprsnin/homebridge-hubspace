@@ -21,7 +21,7 @@ export class LightAccessory implements HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    protected readonly device: Device, // Change from private to protected
+    public readonly device: Device, // Change from protected to public
     private readonly additionalData?: AdditionalData
   ) {
     this.initializeService();
