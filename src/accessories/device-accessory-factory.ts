@@ -27,8 +27,8 @@ export interface AdditionalData { // Add 'export' here
  * @returns {@link HubspaceAccessory}
  * @throws If the device type is not supported.
  */
-export class DeviceAccessoryFactory {
-  static createAccessoryForDevice(
+export class createAccessoryForDevice {
+  static createAccessory(
     platform: HubspacePlatform,
     accessory: PlatformAccessory,
     device: Device,
