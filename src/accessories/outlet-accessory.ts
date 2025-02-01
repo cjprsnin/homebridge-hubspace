@@ -1,9 +1,9 @@
 import { HubspacePlatform } from '../platform';
-import { PlatformAccessory, Service, Characteristic } from 'homebridge';
-import { Device } from '../models/device';
+import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge'; // Import CharacteristicValue
+import { Device, DeviceFunction, getDeviceFunctionDef } from '../models';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { isNullOrUndefined } from '../utils';
+import { DeviceService } from '../services/device-service'; // Import DeviceService
 
 export class OutletAccessory {
   private outletIndex: number; // Add outletIndex property
