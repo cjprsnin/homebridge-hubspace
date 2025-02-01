@@ -5,25 +5,26 @@ import { HubspaceAccessory } from './hubspace-accessory';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { isNullOrUndefined } from '../utils';
 
-export class OutletAccessory extends HubspaceAccessory {
-  constructor(
-    platform: HubspacePlatform,
-    accessory: PlatformAccessory,
-    device: Device,
-    additionalData?: any
-  ) {
-    super(platform, accessory, [platform.Service.Outlet]);
-    this.configureOutlet();
-  }
+xport class OutletAccessory {
+  private outletIndex: number; // Add outletIndex property
 
-  private configureOutlet(): void {
-    if (this.supportsFunction(DeviceFunction.OutletPower)) {
-      const outletService = this.createOutletService();
-      outletService
-        .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(this.getOn.bind(this))
-        .onSet(this.setOn.bind(this));
-    }
+  constructor(
+    private readonly platform: HubspacePlatform,
+    private readonly accessory: PlatformAccessory,
+    private readonly device: Device,
+    outletIndex: number, // Add outletIndex parameter
+    private readonly additionalData?: any
+  ) {
+    this.outletIndex = outletIndex; // Initialize outletIndex
+    this.configureAccessory();
+  }
+  
+  private configureAccessory(): void {
+    // Configure the accessory (e.g., setup characteristics)
+    this.accessory.getService(this.platform.Service.Outlet)!
+      .getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.getOn.bind(this))
+      .onSet(this.setOn.bind(this));
   }
 
   private createOutletService(): Service {
@@ -41,24 +42,12 @@ export class OutletAccessory extends HubspaceAccessory {
 
   private async getOn(): Promise<CharacteristicValue> {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
-    if (!func) {
-      throw new Error('OutletPower function not found.');
-    }
-
     const value = await this.deviceService.getValueAsBoolean(this.device.deviceId, func.deviceValues[this.outletIndex].key);
-    if (isNullOrUndefined(value)) {
-      throw new Error('Failed to get outlet power state.');
-    }
-
     return value;
   }
 
   private async setOn(value: CharacteristicValue): Promise<void> {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.OutletPower, undefined, this.outletIndex);
-    if (!func) {
-      throw new Error('OutletPower function not found.');
-    }
-
     await this.deviceService.setValue(this.device.deviceId, func.deviceValues[this.outletIndex].key, value);
   }
 }
