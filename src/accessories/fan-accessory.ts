@@ -18,7 +18,7 @@ export class FanAccessory implements HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    protected readonly device: Device,
+    public readonly device: Device, // Change from protected to public
     private readonly additionalData?: AdditionalData
   ) {
     this.initializeService();
