@@ -1,34 +1,75 @@
-import { HubspaceAccessory } from './hubspace-accessory';
+import { PlatformAccessory, Service, CharacteristicValue } from 'homebridge';
 import { HubspacePlatform } from '../platform';
-import { PlatformAccessory } from 'homebridge';
-import { OutletAccessory } from './outlet-accessory';
 import { Device } from '../models/device';
-import { AdditionalData } from './device-accessory-factory'; // Import AdditionalData
+import { HubspaceAccessory } from './hubspace-accessory';
+import { AdditionalData } from './device-accessory-factory';
 
-export class MultiOutletAccessory {
+/**
+ * Multi-outlet accessory for Hubspace platform
+ */
+export class MultiOutletAccessory extends HubspaceAccessory {
   constructor(
-    private readonly platform: HubspacePlatform,
-    private readonly accessory: PlatformAccessory,
+    protected readonly platform: HubspacePlatform,
+    protected readonly accessory: PlatformAccessory,
     private readonly children: Device[],
-    private readonly additionalData?: AdditionalData // Add additionalData parameter
+    private readonly additionalData?: AdditionalData
   ) {
     super(platform, accessory, [platform.Service.Outlet]);
 
-    // Check if the children array is valid
-    if (!children || children.length === 0) {
-      platform.log.error('No child devices found for multi-outlet accessory.');
-      throw new Error('No child devices found for multi-outlet accessory.');
+    this.initializeService();
+    this.setAccessoryInformation();
+  }
+
+  /**
+   * Initializes the services for the multi-outlet accessory.
+   */
+  public initializeService(): void {
+    for (const child of this.children) {
+      const service = this.accessory.getService(child.name) || this.accessory.addService(this.platform.Service.Outlet, child.name);
+      this.services.push(service);
+
+      service.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(() => this.getOn(child.deviceId))
+        .onSet((value) => this.setOn(child.deviceId, value));
+
+      this.configureName(service, child.name);
     }
 
-    // Iterate over child devices (outlets) and create an OutletAccessory for each
-    for (let i = 0; i < children.length; i++) {
-      const outletDevice = children[i];
-      
-      // Create an OutletAccessory for each child device (outlet)
-      const outletAccessory = new OutletAccessory(platform, accessory, i, additionalData);
+    this.removeStaleServices();
+  }
 
-      // Add each OutletAccessory's services to the parent
-      this.services.push(...outletAccessory.getServices());
+  /**
+   * Updates the state of the accessory.
+   * @param state The new state of the accessory.
+   */
+  public updateState(state: any): void {
+    // Update the state of each child outlet
+    for (const child of this.children) {
+      const service = this.services.find(s => s.displayName === child.name);
+      if (service) {
+        service.updateCharacteristic(this.platform.Characteristic.On, state[child.deviceId]?.power ?? false);
+      }
     }
+  }
+
+  /**
+   * Gets the power state of a specific outlet.
+   * @param deviceId The ID of the outlet.
+   * @returns The power state of the outlet.
+   */
+  private async getOn(deviceId: string): Promise<CharacteristicValue> {
+    const value = await this.deviceService.getValueAsBoolean(deviceId, 'power');
+    this.log.debug(`${deviceId}: Received ${value} from Hubspace Power`);
+    return value;
+  }
+
+  /**
+   * Sets the power state of a specific outlet.
+   * @param deviceId The ID of the outlet.
+   * @param value The new power state.
+   */
+  private async setOn(deviceId: string, value: CharacteristicValue): Promise<void> {
+    this.log.debug(`${deviceId}: Received ${value} from Homekit Power`);
+    await this.deviceService.setValue(deviceId, 'power', value);
   }
 }
