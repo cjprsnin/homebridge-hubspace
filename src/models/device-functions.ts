@@ -173,10 +173,10 @@ export function getDeviceFunctionDef(
 }
 
 // Sample population of deviceFunctionResponse and testing
-const deviceFunctionResponse: DeviceFunctionResponse[] = [
+export const deviceFunctionResponse: DeviceFunctionResponse[] = [
   {
     functionClass: 'power',
-    functionInstance: 'fan-power',
+    functionInstance: 'outlet-1',
     values: [
       {
         name: 'On/Off',
@@ -188,8 +188,50 @@ const deviceFunctionResponse: DeviceFunctionResponse[] = [
     ],
     outletIndex: 0,
   },
-  // Add other function definitions as needed
+  {
+    functionClass: 'power',
+    functionInstance: 'outlet-2',
+    values: [
+      {
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
+        ],
+        range: { min: 0, max: 1, step: 1 }
+      }
+    ],
+    outletIndex: 1,
+  },
+  {
+    functionClass: 'power',
+    functionInstance: 'outlet-3',
+    values: [
+      {
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
+        ],
+        range: { min: 0, max: 1, step: 1 }
+      }
+    ],
+    outletIndex: 2,
+  },
+  {
+    functionClass: 'power',
+    functionInstance: 'outlet-4',
+    values: [
+      {
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
+        ],
+        range: { min: 0, max: 1, step: 1 }
+      }
+    ],
+    outletIndex: 3,
+  },
 ];
+
 
 // Create a mock logger for testing
 const mockLogger = {
