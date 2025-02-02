@@ -113,3 +113,4 @@ export class MultiFunctionDevice extends HubspaceAccessory {
       value
     );
   }
+}
