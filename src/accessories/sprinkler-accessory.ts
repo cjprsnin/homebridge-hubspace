@@ -5,7 +5,7 @@ import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { AdditionalData } from './device-accessory-factory';
 import { Device } from '../models/device';
-import { AdditionalData } from '../models/additional-data'
+import { AdditionalData } from '../models/additional-data';
 
 export class SprinklerAccessory extends HubspaceAccessory {
   constructor(
