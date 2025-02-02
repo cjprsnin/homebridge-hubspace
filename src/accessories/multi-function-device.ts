@@ -28,14 +28,15 @@ export class MultiFunctionDevice extends HubspaceAccessory {
       const functionType = this.determineFunctionType(child);
       const service = this.addService(functionType);
 
-      this.configureName(service, `${this.device.name} ${functionType.displayName} ${index + 1}`);
+      const serviceName = functionType.name || 'Service';
+      this.configureName(service, `${this.device.name} ${serviceName} ${index + 1}`);
 
       service
         .getCharacteristic(this.platform.Characteristic.On)
         .onGet(async () => this.getOn(index))
         .onSet((value) => this.setOn(value, index));
 
-      this.log.info(`Configured service for ${this.device.name} ${functionType.displayName} ${index + 1}`);
+      this.log.info(`Configured service for ${this.device.name} ${serviceName} ${index + 1}`);
     });
 
     this.removeStaleServices();
