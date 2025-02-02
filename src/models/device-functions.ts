@@ -1,3 +1,17 @@
+I see where the confusion might be coming from. Let's clarify a few things and ensure your `deviceFunctionResponse` is set up correctly.
+
+### Key Changes:
+
+1. **Remove Incorrect `fan-power` Instance in Test Call**:
+   Ensure your test call for `getDeviceFunctionDef` uses the correct instances like `outlet-1`, `outlet-2`, etc.
+   
+2. **Fix Misplaced Braces in `DeviceFunctions`**:
+   Correct the misplaced closing braces in your `DeviceFunctions`.
+
+### Updated Device Functions and Test Call:
+
+**device-functions.ts**:
+```typescript
 import { DeviceFunctionDef } from './device-function-def';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
 
@@ -58,62 +72,60 @@ export const DeviceFunctions: DeviceFunctionResponse[] = [
     values: [],
   },
   {
-      "functionClass": "power",
-    "functionInstance": "outlet-1",
-    "values": [
+    functionClass: DeviceFunction.Power,
+    functionInstance: 'outlet-1',
+    values: [
       {
-        "name": "On/Off",
-        "deviceValues": [
-          { "type": "Boolean", "key": "power", "values": [] }
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
         ],
-        "range": { "min": 0, "max": 1, "step": 1 }
+        range: { min: 0, max: 1, step: 1 }
       }
     ],
-    "outletIndex": 0
+    outletIndex: 0
   },
   {
-    "functionClass": "power",
-    "functionInstance": "outlet-2",
-    "values": [
+    functionClass: DeviceFunction.Power,
+    functionInstance: 'outlet-2',
+    values: [
       {
-        "name": "On/Off",
-        "deviceValues": [
-          { "type": "Boolean", "key": "power", "values": [] }
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
         ],
-        "range": { "min": 0, "max": 1, "step": 1 }
+        range: { min: 0, max: 1, step: 1 }
       }
     ],
-    "outletIndex": 1
+    outletIndex: 1
   },
   {
-    "functionClass": "power",
-    "functionInstance": "outlet-3",
-    "values": [
+    functionClass: DeviceFunction.Power,
+    functionInstance: 'outlet-3',
+    values: [
       {
-        "name": "On/Off",
-        "deviceValues": [
-          { "type": "Boolean", "key": "power", "values": [] }
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
         ],
-        "range": { "min": 0, "max": 1, "step": 1 }
+        range: { min: 0, max: 1, step: 1 }
       }
     ],
-    "outletIndex": 2
+    outletIndex: 2
   },
   {
-    "functionClass": "power",
-    "functionInstance": "outlet-4",
-    "values": [
+    functionClass: DeviceFunction.Power,
+    functionInstance: 'outlet-4',
+    values: [
       {
-        "name": "On/Off",
-        "deviceValues": [
-          { "type": "Boolean", "key": "power", "values": [] }
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
         ],
-        "range": { "min": 0, "max": 1, "step": 1 }
+        range: { min: 0, max: 1, step: 1 }
       }
     ],
-    "outletIndex": 3
-  }
-]
+    outletIndex: 3
   },
   {
     functionClass: DeviceFunction.LightTemperature,
@@ -230,8 +242,6 @@ export const deviceFunctionResponse: DeviceFunctionResponse[] = [
   {
     functionClass: 'power',
     functionInstance: 'outlet-1',
-    "outletIndex": 0,
-    "found": true
     values: [
       {
         name: 'On/Off',
@@ -287,7 +297,6 @@ export const deviceFunctionResponse: DeviceFunctionResponse[] = [
   },
 ];
 
-
 // Create a mock logger for testing
 const mockLogger = {
   debug: console.log,
@@ -296,12 +305,9 @@ const mockLogger = {
 
 // Call the getDeviceFunctionDef function
 try {
-  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, 'fan-power', 0, mockLogger);
+  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, 'outlet-1', 0, mockLogger);
   console.log(functionDef); // Check if the correct function definition is returned
 } catch (error) {
   if (error instanceof Error) {
     console.error(`Error: ${error.message}`); // Type guard to access error message safely
-  } else {
-    console.error('An unknown error occurred');
-  }
-}
+  } else
