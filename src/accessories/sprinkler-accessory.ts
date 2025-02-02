@@ -3,7 +3,6 @@ import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions
 import { HubspacePlatform } from '../platform';
 import { isNullOrUndefined } from '../utils';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { AdditionalData } from './device-accessory-factory';
 import { Device } from '../models/device';
 import { AdditionalData } from '../models/additional-data';
 
