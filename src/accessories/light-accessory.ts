@@ -1,7 +1,6 @@
 import { CharacteristicValue, PlatformAccessory, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
-import { AdditionalData } from './device-accessory-factory';
 import { isNullOrUndefined, normalizeValue, hexToRgb, rgbToHsv, hsvToRgb, rgbToHex, rgbToMired, kelvinToRgb, clamp } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { AdditionalData } from '../models/additional-data'; // Correct import path
