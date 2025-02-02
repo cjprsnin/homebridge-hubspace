@@ -98,10 +98,4 @@ export abstract class HubspaceAccessory {
 
   protected configureName(service: Service, name: string): void {
     service.setCharacteristic(this.platform.Characteristic.Name, name);
-    service.setCharacteristic(this.platform.Characteristic.ConfiguredName, name);
-    this.log.info(`Configured service name: ${name}`);
-  }
-
-  public abstract initializeService(): void;
-  public abstract updateState(state: any): void;
-}
+    service.setCharacteristic(this.platform.Characteristic
