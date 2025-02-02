@@ -1,4 +1,4 @@
-import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
+import { PlatformAccessory, CharacteristicValue, Service, WithUUID } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
