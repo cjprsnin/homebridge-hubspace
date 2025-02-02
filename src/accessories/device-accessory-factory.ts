@@ -1,8 +1,9 @@
-import { HubspacePlatform } from '../platform';
 import { PlatformAccessory } from 'homebridge';
+import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
 import { DeviceType } from '../models/device-type';
 import { AdditionalData } from '../models/additional-data';
+import { HubspaceAccessory } from './hubspace-accessory';
 import { LightAccessory } from './light-accessory';
 import { FanAccessory } from './fan-accessory';
 import { OutletAccessory } from './outlet-accessory';
@@ -19,7 +20,6 @@ export class createAccessoryForDevice {
     // Log the initialization of the device
     platform.log.info(`Initializing ${device.name} (${device.type})`);
 
-    // Use the correct property name for device type (e.g., device.type or device.deviceType)
     const deviceType = device.type;
 
     switch (deviceType) {
