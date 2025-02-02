@@ -2,8 +2,8 @@ import { PlatformAccessory, Service, CharacteristicValue } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
 import { DeviceFunction, getDeviceFunctionDef  } from '../models/device-functions';
+import { AdditionalData } from '../models/additional-data'; // Correct import path
 import { HubspaceAccessory } from './hubspace-accessory';
-import { AdditionalData } from './device-accessory-factory';
 import { isNullOrUndefined } from '../utils';
 
 /**
