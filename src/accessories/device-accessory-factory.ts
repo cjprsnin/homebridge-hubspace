@@ -17,7 +17,6 @@ export class createAccessoryForDevice {
     device: Device,
     additionalData?: AdditionalData
   ): HubspaceAccessory {
-    // Log the initialization of the device
     platform.log.info(`Initializing ${device.name} (${device.type})`);
 
     const deviceType = device.type;
@@ -34,11 +33,7 @@ export class createAccessoryForDevice {
         return new OutletAccessory(platform, accessory, device, outletIndex);
 
       case DeviceType.MultiOutlet:
-        if (!device.children || device.children.length === 0) {
-          platform.log.error(`Multi-outlet device '${device.name}' has no children.`);
-          throw new Error(`Multi-outlet device '${device.name}' has no children.`);
-        }
-        return new MultiOutletAccessory(platform, accessory, device.children, additionalData);
+        return new MultiOutletAccessory(platform, accessory, device, additionalData); // Pass device
 
       case DeviceType.Sprinkler:
         return new SprinklerAccessory(platform, accessory, device, additionalData);
