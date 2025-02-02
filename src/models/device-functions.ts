@@ -1,17 +1,3 @@
-I see where the confusion might be coming from. Let's clarify a few things and ensure your `deviceFunctionResponse` is set up correctly.
-
-### Key Changes:
-
-1. **Remove Incorrect `fan-power` Instance in Test Call**:
-   Ensure your test call for `getDeviceFunctionDef` uses the correct instances like `outlet-1`, `outlet-2`, etc.
-   
-2. **Fix Misplaced Braces in `DeviceFunctions`**:
-   Correct the misplaced closing braces in your `DeviceFunctions`.
-
-### Updated Device Functions and Test Call:
-
-**device-functions.ts**:
-```typescript
 import { DeviceFunctionDef } from './device-function-def';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
 
@@ -310,4 +296,7 @@ try {
 } catch (error) {
   if (error instanceof Error) {
     console.error(`Error: ${error.message}`); // Type guard to access error message safely
-  } else
+  } else {
+    console.error('An unknown error occurred');
+  }
+}
