@@ -22,14 +22,15 @@ export enum DeviceFunction {
   Spigot2 = 'spigot-2',
 }
 
-export const DeviceFunctions: DeviceFunctionDef[] = [
+export const DeviceFunctions: DeviceFunctionResponse[] = [
   {
     functionClass: DeviceFunction.Power,
-    functionInstanceName: DeviceFunction.FanLightPower,
+    functionInstance: 'fan-light-power',
+    values: [],
   },
   {
     functionClass: DeviceFunction.Power,
-    functionInstanceName: DeviceFunction.FanPower,
+    functionInstance: 'fan-power',
     values: [
       {
         name: 'On/Off',
@@ -39,63 +40,77 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
         range: { min: 0, max: 1, step: 1 }
       }
     ],
-    outletIndex: 0
+    outletIndex: 0,
   },
   {
     functionClass: DeviceFunction.FanSpeed,
-    functionInstanceName: DeviceFunction.FanSpeed,
+    functionInstance: 'fan-speed',
+    values: [],
   },
   {
     functionClass: DeviceFunction.Power,
-    functionInstanceName: 'default-power', // Add a default instance name
+    functionInstance: 'default-power', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.Brightness,
-    functionInstanceName: 'default-brightness', // Add a default instance name
+    functionInstance: 'default-brightness', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.OutletPower,
-    functionInstanceName: 'default-outlet-power', // Add a default instance name
+    functionInstance: 'default-outlet-power', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.LightTemperature,
-    functionInstanceName: 'default-light-temperature', // Add a default instance name
+    functionInstance: 'default-light-temperature', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.LightColor,
-    functionInstanceName: 'default-light-color', // Add a default instance name
+    functionInstance: 'default-light-color', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.ColorMode,
-    functionInstanceName: 'default-color-mode', // Add a default instance name
+    functionInstance: 'default-color-mode', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.BatteryLevel,
-    functionInstanceName: 'default-battery-level', // Add a default instance name
+    functionInstance: 'default-battery-level', // Add a default instance name
+    values: [],
   },
   {
     functionClass: DeviceFunction.Toggle,
-    functionInstanceName: DeviceFunction.Spigot1,
+    functionInstance: 'spigot-1',
+    values: [],
   },
   {
     functionClass: DeviceFunction.MaxOnTime,
-    functionInstanceName: DeviceFunction.Spigot1,
+    functionInstance: 'spigot-1',
+    values: [],
   },
   {
     functionClass: DeviceFunction.Timer,
-    functionInstanceName: DeviceFunction.Spigot1,
+    functionInstance: 'spigot-1',
+    values: [],
   },
   {
     functionClass: DeviceFunction.Toggle,
-    functionInstanceName: DeviceFunction.Spigot2,
+    functionInstance: 'spigot-2',
+    values: [],
   },
   {
     functionClass: DeviceFunction.MaxOnTime,
-    functionInstanceName: DeviceFunction.Spigot2,
+    functionInstance: 'spigot-2',
+    values: [],
   },
   {
     functionClass: DeviceFunction.Timer,
-    functionInstanceName: DeviceFunction.Spigot2,
+    functionInstance: 'spigot-2',
+    values: [],
   },
 ];
 
@@ -112,7 +127,7 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
 export function getDeviceFunctionDef(
   deviceFunctionResponse: DeviceFunctionResponse[],
   deviceFunction: DeviceFunction,
-  deviceFunctionInstance?: DeviceFunction,
+  deviceFunctionInstance?: string,
   outletIndex?: number,
   logger?: any // Change to any type for mock logger
 ): DeviceFunctionResponse {
@@ -184,7 +199,7 @@ const mockLogger = {
 
 // Call the getDeviceFunctionDef function
 try {
-  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0, mockLogger);
+  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, 'fan-power', 0, mockLogger);
   console.log(functionDef); // Check if the correct function definition is returned
 } catch (error) {
   if (error instanceof Error) {
