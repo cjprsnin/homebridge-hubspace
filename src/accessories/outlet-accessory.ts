@@ -28,8 +28,15 @@ export class OutletAccessory extends HubspaceAccessory {
     this.removeStaleServices();
   }
 
+  public async updateState(): Promise<void> {
+    const value = await this.getOn();
+    const service = this.services.find((s) => s.UUID === this.platform.Service.Outlet.UUID);
+    if (service) {
+      service.updateCharacteristic(this.platform.Characteristic.On, value);
+    }
+  }
+
   private async getOn(): Promise<CharacteristicValue> {
-    // Add logging here to verify deviceFunctionResponse contents
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, this.outletIndex);
     if (!func) {
       this.log.error(`${this.device.name}: Power function not supported.`);
