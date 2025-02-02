@@ -60,7 +60,8 @@ export class DeviceService {
             deviceStatus = response.data;
 
             // Save the JSON response for debugging
-            this._platform.saveDeviceFunctionResponse(deviceStatus, deviceId);
+            const outletIndex = this.getOutletIndex(deviceId);
+            this._platform.saveDeviceFunctionResponse(deviceStatus, outletIndex);
 
         } catch (ex) {
             this.handleError(<AxiosError>ex);
@@ -113,7 +114,6 @@ export class DeviceService {
     }
 
     private getDataValue(value: CharacteristicValue): string {
-
         if (typeof value === 'string') {
             return value;
         }
@@ -134,5 +134,19 @@ export class DeviceService {
         const errorMessage = isAferoError(responseData) ? responseData.error_description : error.message;
 
         this._platform.log.error('The remote service returned an error.', errorMessage);
+    }
+
+    // Function to determine the outlet index based on deviceId
+    private getOutletIndex(deviceId: string): number {
+        // Implement your logic to determine the outlet index based on deviceId
+        // For example:
+        const outletMap = {
+            'device123-outlet-1': 0,
+            'device123-outlet-2': 1,
+            'device123-outlet-3': 2,
+            'device123-outlet-4': 3,
+        };
+
+        return outletMap[deviceId] ?? 0; // Default to 0 if not found
     }
 }
