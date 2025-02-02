@@ -49,16 +49,16 @@ export class MultiFunctionDevice extends HubspaceAccessory {
       return this.platform.Service.Outlet;
     }
 
-    const lightFunction = child.functions.find(f => f.functionClass === DeviceFunction.Brightness || f.functionClass === DeviceFunction.LightTemperature || f.functionClass === DeviceFunction.LightColor);
-    if (lightFunction) {
-      this.log.info(`Detected light function for child device: ${child.name}`);
-      return this.platform.Service.Lightbulb;
+    const toggleFunction = child.functions.find(f => f.functionClass === DeviceFunction.Toggle);
+    if (toggleFunction) {
+      this.log.info(`Detected toggle function for child device: ${child.name}`);
+      return this.platform.Service.Outlet;
     }
 
-    const fanFunction = child.functions.find(f => f.functionClass === DeviceFunction.FanSpeed || f.functionClass === DeviceFunction.FanPower);
-    if (fanFunction) {
-      this.log.info(`Detected fan function for child device: ${child.name}`);
-      return this.platform.Service.Fan;
+    const timerFunction = child.functions.find(f => f.functionClass === DeviceFunction.Timer);
+    if (timerFunction) {
+      this.log.info(`Detected timer function for child device: ${child.name}`);
+      return this.platform.Service.Switch;
     }
 
     this.log.warn(`No specific function found for child device: ${child.name}, defaulting to Switch`);
