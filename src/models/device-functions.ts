@@ -1,6 +1,5 @@
 import { DeviceFunctionDef } from './device-function-def';
 import { DeviceFunctionResponse } from '../responses/device-function-response';
-import { Logger } from 'homebridge';
 
 /**
  * Device functions types
@@ -105,7 +104,7 @@ export function getDeviceFunctionDef(
   deviceFunction: DeviceFunction,
   deviceFunctionInstance?: DeviceFunction,
   outletIndex?: number,
-  logger?: Logger
+  logger?: any // Change to any type for mock logger
 ): DeviceFunctionResponse {
   // Add debug log to show the content of deviceFunctionResponse
   if (logger) {
@@ -167,12 +166,15 @@ const deviceFunctionResponse: DeviceFunctionResponse[] = [
   // Add other function definitions as needed
 ];
 
-// Initialize a logger (assuming you have a logger instance)
-const logger = new Logger('TestLogger');
+// Create a mock logger for testing
+const mockLogger = {
+  debug: console.log,
+  error: console.error,
+};
 
 // Call the getDeviceFunctionDef function
 try {
-  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0, logger);
+  const functionDef = getDeviceFunctionDef(deviceFunctionResponse, DeviceFunction.Power, undefined, 0, mockLogger);
   console.log(functionDef); // Check if the correct function definition is returned
 } catch (error) {
   if (error instanceof Error) {
