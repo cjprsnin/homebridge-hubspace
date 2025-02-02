@@ -1,8 +1,7 @@
-import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
+import { PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
-import { AdditionalData } from './device-accessory-factory';
 import { HubspaceAccessory } from './hubspace-accessory';
 
 export class OutletAccessory extends HubspaceAccessory {
@@ -10,8 +9,7 @@ export class OutletAccessory extends HubspaceAccessory {
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
     protected readonly device: Device,
-    private readonly outletIndex: number,
-    private readonly additionalData?: AdditionalData
+    private readonly outletIndex: number
   ) {
     super(platform, accessory, [platform.Service.Outlet]);
     this.initializeService();
@@ -24,13 +22,14 @@ export class OutletAccessory extends HubspaceAccessory {
 
     service
       .getCharacteristic(this.platform.Characteristic.On)
-      .onGet(() => this.getOn())
+      .onGet(async () => this.getOn())
       .onSet((value) => this.setOn(value));
 
     this.removeStaleServices();
   }
 
   private async getOn(): Promise<CharacteristicValue> {
+    // Add logging here to verify deviceFunctionResponse contents
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, this.outletIndex);
     if (!func) {
       this.log.error(`${this.device.name}: Power function not supported.`);
@@ -58,13 +57,5 @@ export class OutletAccessory extends HubspaceAccessory {
       func.values[0].deviceValues[this.outletIndex].key,
       value
     );
-  }
-  // Implementation of the abstract method from HubspaceAccessory
-  public async updateState(): Promise<void> {
-    const value = await this.getOn();
-    const service = this.services.find((s) => s.UUID === this.platform.Service.Outlet.UUID);
-    if (service) {
-      service.updateCharacteristic(this.platform.Characteristic.On, value);
-    }
   }
 }
