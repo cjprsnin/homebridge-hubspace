@@ -5,6 +5,9 @@ import { Device } from '../models/device';
 import { AdditionalData } from './device-accessory-factory';
 import { isNullOrUndefined } from '../utils';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
+import { AdditionalData } from '../models/additional-data';
+
+
 /**
  * Fan accessory for Hubspace platform
  */
