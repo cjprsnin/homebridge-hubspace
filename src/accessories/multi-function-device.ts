@@ -28,35 +28,35 @@ export class MultiFunctionDevice extends HubspaceAccessory {
       const functionType = this.determineFunctionType(child);
       const service = this.addService(functionType);
 
-      this.configureName(service, `${this.device.name} ${functionType} ${index + 1}`);
+      this.configureName(service, `${this.device.name} ${functionType.displayName} ${index + 1}`);
 
       service
         .getCharacteristic(this.platform.Characteristic.On)
         .onGet(async () => this.getOn(index))
         .onSet((value) => this.setOn(value, index));
 
-      this.log.info(`Configured service for ${this.device.name} ${functionType} ${index + 1}`);
+      this.log.info(`Configured service for ${this.device.name} ${functionType.displayName} ${index + 1}`);
     });
 
     this.removeStaleServices();
   }
 
   private determineFunctionType(child: Device): Service | WithUUID<typeof Service> {
-    const powerFunction = child.functions.find(f => f.functionClass === 'power');
+    const powerFunction = child.functions.find(f => f.functionClass === DeviceFunction.Power);
     if (powerFunction) {
       this.log.info(`Detected power function for child device: ${child.name}`);
       return this.platform.Service.Outlet;
     }
 
-    const lightFunction = child.functions.find(f => f.functionClass === 'brightness');
+    const lightFunction = child.functions.find(f => f.functionClass === DeviceFunction.Brightness || f.functionClass === DeviceFunction.LightTemperature || f.functionClass === DeviceFunction.LightColor);
     if (lightFunction) {
-      this.log.info(`Detected brightness function for child device: ${child.name}`);
+      this.log.info(`Detected light function for child device: ${child.name}`);
       return this.platform.Service.Lightbulb;
     }
 
-    const fanFunction = child.functions.find(f => f.functionClass === 'fan-speed');
+    const fanFunction = child.functions.find(f => f.functionClass === DeviceFunction.FanSpeed || f.functionClass === DeviceFunction.FanPower);
     if (fanFunction) {
-      this.log.info(`Detected fan-speed function for child device: ${child.name}`);
+      this.log.info(`Detected fan function for child device: ${child.name}`);
       return this.platform.Service.Fan;
     }
 
