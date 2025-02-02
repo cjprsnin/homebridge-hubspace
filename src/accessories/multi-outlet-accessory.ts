@@ -63,7 +63,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
 
     const value = await this.deviceService.getValueAsBoolean(
       this.device.deviceId,
-      func.values[0].deviceValues[outletIndex].key
+      func.values[0].deviceValues[0].key
     );
     this.log.debug(`${this.device.name}: Received ${value} from Hubspace Power for outlet ${outletIndex + 1}`);
     return value ?? false;
@@ -80,7 +80,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
 
     await this.deviceService.setValue(
       this.device.deviceId,
-      func.values[0].deviceValues[outletIndex].key,
+      func.values[0].deviceValues[0].key,
       value
     );
   }
