@@ -4,6 +4,7 @@ import { DiscoveryService } from './services/discovery.service';
 import { DeviceService } from './services/device.service';
 import { isConfigValid } from './config';
 import { TokenService } from './services/token.service';
+import fs from 'fs';
 
 /**
  * HomebridgePlatform
@@ -63,5 +64,22 @@ export class HubspacePlatform implements DynamicPlatformPlugin {
 
     this._discoveryService.configureCachedAccessory(accessory);
     this.log.info('Restored cached accessory:', accessory.displayName);
+  }
+  
+  // Function to save JSON response
+  private saveJsonResponse(data: any, filename: string) {
+    fs.writeFile(filename, JSON.stringify(data, null, 2), (err) => {
+      if (err) {
+        this.log.error('Error writing file:', err);
+      } else {
+        this.log.info('JSON response saved to', filename);
+      }
+    });
+  }
+
+  // Example method where JSON response needs to be saved
+  public saveDeviceFunctionResponse(response: any, outletIndex: number) {
+    const filename = `outlet-${outletIndex + 1}.json`;
+    this.saveJsonResponse(response, filename);
   }
 }
