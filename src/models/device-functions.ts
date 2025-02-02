@@ -58,9 +58,62 @@ export const DeviceFunctions: DeviceFunctionResponse[] = [
     values: [],
   },
   {
-    functionClass: DeviceFunction.OutletPower,
-    functionInstance: 'default-outlet-power', // Add a default instance name
-    values: [],
+      "functionClass": "power",
+    "functionInstance": "outlet-1",
+    "values": [
+      {
+        "name": "On/Off",
+        "deviceValues": [
+          { "type": "Boolean", "key": "power", "values": [] }
+        ],
+        "range": { "min": 0, "max": 1, "step": 1 }
+      }
+    ],
+    "outletIndex": 0
+  },
+  {
+    "functionClass": "power",
+    "functionInstance": "outlet-2",
+    "values": [
+      {
+        "name": "On/Off",
+        "deviceValues": [
+          { "type": "Boolean", "key": "power", "values": [] }
+        ],
+        "range": { "min": 0, "max": 1, "step": 1 }
+      }
+    ],
+    "outletIndex": 1
+  },
+  {
+    "functionClass": "power",
+    "functionInstance": "outlet-3",
+    "values": [
+      {
+        "name": "On/Off",
+        "deviceValues": [
+          { "type": "Boolean", "key": "power", "values": [] }
+        ],
+        "range": { "min": 0, "max": 1, "step": 1 }
+      }
+    ],
+    "outletIndex": 2
+  },
+  {
+    "functionClass": "power",
+    "functionInstance": "outlet-4",
+    "values": [
+      {
+        "name": "On/Off",
+        "deviceValues": [
+          { "type": "Boolean", "key": "power", "values": [] }
+        ],
+        "range": { "min": 0, "max": 1, "step": 1 }
+      }
+    ],
+    "outletIndex": 3
+  }
+]
   },
   {
     functionClass: DeviceFunction.LightTemperature,
@@ -177,6 +230,8 @@ export const deviceFunctionResponse: DeviceFunctionResponse[] = [
   {
     functionClass: 'power',
     functionInstance: 'outlet-1',
+    "outletIndex": 0,
+    "found": true
     values: [
       {
         name: 'On/Off',
