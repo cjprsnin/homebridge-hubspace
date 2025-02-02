@@ -1,58 +1,74 @@
-import { PlatformAccessory, Service, CharacteristicValue } from 'homebridge';
+import { PlatformAccessory, CharacteristicValue, Service } from 'homebridge';
 import { HubspacePlatform } from '../platform';
 import { Device } from '../models/device';
-import { DeviceFunction, getDeviceFunctionDef  } from '../models/device-functions';
-import { AdditionalData } from '../models/additional-data'; // Correct import path
+import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspaceAccessory } from './hubspace-accessory';
-import { isNullOrUndefined } from '../utils';
+import { AdditionalData } from '../models/additional-data';
 
-/**
- * Multi-outlet accessory for Hubspace platform
- */
 export class MultiOutletAccessory extends HubspaceAccessory {
   constructor(
     protected readonly platform: HubspacePlatform,
     protected readonly accessory: PlatformAccessory,
-    protected readonly devices: Device[],
-    private readonly additionalData?: AdditionalData
+    protected readonly device: Device,
+    additionalData?: AdditionalData
   ) {
-    super(platform, accessory, devices.map(() => platform.Service.Outlet));
+    super(platform, accessory, [platform.Service.Outlet]);
+    this.initializeService();
+    this.setAccessoryInformation();
   }
 
   public initializeService(): void {
-    this.devices.forEach((device, index) => {
+    // Iterate through each child (representing an outlet) and configure the service
+    this.device.children.forEach((child, index) => {
       const service = this.addService(this.platform.Service.Outlet);
-      this.configureName(service, `${device.name} Outlet ${index + 1}`);
-      this.configurePower(index);
+      this.configureName(service, `${this.device.name} Outlet ${index + 1}`);
+
+      service
+        .getCharacteristic(this.platform.Characteristic.On)
+        .onGet(async () => this.getOn(index))
+        .onSet((value) => this.setOn(value, index));
     });
 
     this.removeStaleServices();
   }
 
-  public updateState(state: any): void {
-    // Update the state of the accessory
+  public async updateState(): Promise<void> {
+    for (let index = 0; index < this.device.children.length; index++) {
+      const value = await this.getOn(index);
+      const service = this.services.find((s) => s.UUID === this.platform.Service.Outlet.UUID && s.subtype === `outlet-${index}`);
+      if (service) {
+        service.updateCharacteristic(this.platform.Characteristic.On, value);
+      }
+    }
   }
 
-  private configurePower(index: number): void {
-    this.services[index].getCharacteristic(this.platform.Characteristic.On)
-      .onGet(() => this.getOn(index))
-      .onSet((value) => this.setOn(index, value));
-  }
-
-  private async getOn(index: number): Promise<CharacteristicValue> {
-    const func = getDeviceFunctionDef(this.devices[index].functions, DeviceFunction.Power);
-    const value = await this.deviceService.getValueAsBoolean(this.devices[index].deviceId, func.values[0].deviceValues[0].key);
-
-    if (isNullOrUndefined(value)) {
-      throw new this.platform.api.hap.HapStatusError(this.platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  private async getOn(outletIndex: number): Promise<CharacteristicValue> {
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, outletIndex);
+    if (!func) {
+      this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
+      return false; // Return a default value or throw an error
     }
 
-    this.log.debug(`${this.devices[index].name}: Received ${value} from Hubspace Power`);
-    return value!;
+    const value = await this.deviceService.getValueAsBoolean(
+      this.device.deviceId,
+      func.values[0].deviceValues[outletIndex].key
+    );
+    this.log.debug(`${this.device.name}: Received ${value} from Hubspace Power for outlet ${outletIndex + 1}`);
+    return value ?? false; // Ensure a boolean is returned
   }
 
-  private async setOn(index: number, value: CharacteristicValue): Promise<void> {
-    const func = getDeviceFunctionDef(this.devices[index].functions, DeviceFunction.Power);
-    await this.deviceService.setValue(this.devices[index].deviceId, func.values[0].deviceValues[0].key, value);
+  private async setOn(value: CharacteristicValue, outletIndex: number): Promise<void> {
+    this.log.debug(`${this.device.name}: Received ${value} from Homekit Power for outlet ${outletIndex + 1}`);
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, outletIndex);
+    if (!func) {
+      this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
+      return;
+    }
+
+    await this.deviceService.setValue(
+      this.device.deviceId,
+      func.values[0].deviceValues[outletIndex].key,
+      value
+    );
   }
 }
