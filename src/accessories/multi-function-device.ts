@@ -4,6 +4,7 @@ import { Device } from '../models/device';
 import { DeviceFunction, getDeviceFunctionDef } from '../models/device-functions';
 import { HubspaceAccessory } from './hubspace-accessory';
 import { AdditionalData } from '../models/additional-data';
+import { DeviceFunctionResponse } from '../responses/device-function-response';
 
 export class MultiFunctionDevice extends HubspaceAccessory {
   constructor(
@@ -30,8 +31,8 @@ export class MultiFunctionDevice extends HubspaceAccessory {
 
       service
         .getCharacteristic(this.platform.Characteristic.On)
-        .onGet(async () => this.getOn(index))
-        .onSet((value) => this.setOn(value, index));
+        .onGet(async () => this.getOn(func, index))
+        .onSet((value) => this.setOn(value, func, index));
 
       this.log.info(`Configured service for ${this.device.name} ${functionType.name} ${index + 1}`);
     });
@@ -39,7 +40,7 @@ export class MultiFunctionDevice extends HubspaceAccessory {
     this.removeStaleServices();
   }
 
-  private determineFunctionType(func: DeviceFunction): Service | WithUUID<typeof Service> {
+  private determineFunctionType(func: DeviceFunctionResponse): Service | WithUUID<typeof Service> {
     this.log.info(`Determining function type for function: ${func.functionClass}`);
     if (func.functionClass === DeviceFunction.Power || func.functionClass === DeviceFunction.Toggle) {
       this.log.info(`Detected power or toggle function: ${func.functionClass}`);
@@ -62,7 +63,7 @@ export class MultiFunctionDevice extends HubspaceAccessory {
     }
 
     for (let index = 0; index < this.device.functions.length; index++) {
-      const value = await this.getOn(index);
+      const value = await this.getOn(this.device.functions[index], index);
       const service = this.services.find((s) => s.UUID === this.platform.Service.Outlet.UUID && s.subtype === `${this.device.name}-${this.device.functions[index].functionInstance}`);
       if (service) {
         this.log.info(`Updating ${this.device.name} function ${this.device.functions[index].functionClass} instance ${index + 1} to state ${value}`);
@@ -71,8 +72,7 @@ export class MultiFunctionDevice extends HubspaceAccessory {
     }
   }
 
-  private async getOn(functionIndex: number): Promise<CharacteristicValue> {
-    const func = this.device.functions[functionIndex];
+  private async getOn(func: DeviceFunctionResponse, functionIndex: number): Promise<CharacteristicValue> {
     this.log.debug(`Device functions before retrieval: ${JSON.stringify(this.device.functions)}`);
 
     const deviceFunctionDef = getDeviceFunctionDef(this.device.functions, func.functionClass, func.functionInstance, functionIndex);
@@ -89,8 +89,7 @@ export class MultiFunctionDevice extends HubspaceAccessory {
     return value ?? false;
   }
 
-  private async setOn(value: CharacteristicValue, functionIndex: number): Promise<void> {
-    const func = this.device.functions[functionIndex];
+  private async setOn(value: CharacteristicValue, func: DeviceFunctionResponse, functionIndex: number): Promise<void> {
     this.log.debug(`${this.device.name}: Received ${value} from Homekit for function ${func.functionClass} instance ${func.functionInstance}`);
     const deviceFunctionDef = getDeviceFunctionDef(this.device.functions, func.functionClass, func.functionInstance, functionIndex);
     if (!deviceFunctionDef) {
