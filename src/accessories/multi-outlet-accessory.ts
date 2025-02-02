@@ -18,6 +18,11 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   }
 
   public initializeService(): void {
+    if (!this.device.children) {
+      this.log.error(`${this.device.name} has no children devices.`);
+      return;
+    }
+
     // Iterate through each child (representing an outlet) and configure the service
     this.device.children.forEach((child, index) => {
       const service = this.addService(this.platform.Service.Outlet);
@@ -33,6 +38,11 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   }
 
   public async updateState(): Promise<void> {
+    if (!this.device.children) {
+      this.log.error(`${this.device.name} has no children devices.`);
+      return;
+    }
+
     for (let index = 0; index < this.device.children.length; index++) {
       const value = await this.getOn(index);
       const service = this.services.find((s) => s.UUID === this.platform.Service.Outlet.UUID && s.subtype === `outlet-${index}`);
@@ -46,7 +56,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
     const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, outletIndex);
     if (!func) {
       this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
-      return false; // Return a default value or throw an error
+      return false;
     }
 
     const value = await this.deviceService.getValueAsBoolean(
@@ -54,7 +64,7 @@ export class MultiOutletAccessory extends HubspaceAccessory {
       func.values[0].deviceValues[outletIndex].key
     );
     this.log.debug(`${this.device.name}: Received ${value} from Hubspace Power for outlet ${outletIndex + 1}`);
-    return value ?? false; // Ensure a boolean is returned
+    return value ?? false;
   }
 
   private async setOn(value: CharacteristicValue, outletIndex: number): Promise<void> {
