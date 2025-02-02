@@ -34,6 +34,8 @@ export class MultiFunctionDevice extends HubspaceAccessory {
         .getCharacteristic(this.platform.Characteristic.On)
         .onGet(async () => this.getOn(index))
         .onSet((value) => this.setOn(value, index));
+
+      this.log.info(`Configured service for ${this.device.name} ${functionType} ${index + 1}`);
     });
 
     this.removeStaleServices();
@@ -98,17 +100,4 @@ export class MultiFunctionDevice extends HubspaceAccessory {
 
   private async setOn(value: CharacteristicValue, outletIndex: number): Promise<void> {
     const deviceFunctionInstance = `outlet-${outletIndex + 1}`;
-    this.log.debug(`${this.device.name}: Received ${value} from Homekit Power for outlet ${outletIndex + 1}`);
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, deviceFunctionInstance, outletIndex);
-    if (!func) {
-      this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
-      return;
-    }
-
-    await this.deviceService.setValue(
-      this.device.deviceId,
-      func.values[0].deviceValues[0].key,
-      value
-    );
-  }
-}
+    this.log.debug
