@@ -24,6 +24,7 @@ export class MultiFunctionDevice extends HubspaceAccessory {
     }
 
     this.device.children.forEach((child, index) => {
+      this.log.info(`Initializing ${this.device.name} child ${index + 1}: ${child.name}`);
       const functionType = this.determineFunctionType(child);
       const service = this.addService(functionType);
 
@@ -41,19 +42,23 @@ export class MultiFunctionDevice extends HubspaceAccessory {
   private determineFunctionType(child: Device): Service | WithUUID<typeof Service> {
     const powerFunction = child.functions.find(f => f.functionClass === 'power');
     if (powerFunction) {
-      return this.platform.Service.Outlet; // Example, adjust as needed
+      this.log.info(`Detected power function for child device: ${child.name}`);
+      return this.platform.Service.Outlet;
     }
 
     const lightFunction = child.functions.find(f => f.functionClass === 'brightness');
     if (lightFunction) {
+      this.log.info(`Detected brightness function for child device: ${child.name}`);
       return this.platform.Service.Lightbulb;
     }
 
     const fanFunction = child.functions.find(f => f.functionClass === 'fan-speed');
     if (fanFunction) {
+      this.log.info(`Detected fan-speed function for child device: ${child.name}`);
       return this.platform.Service.Fan;
     }
 
+    this.log.warn(`No specific function found for child device: ${child.name}, defaulting to Switch`);
     return this.platform.Service.Switch; // Default fallback
   }
 
