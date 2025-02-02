@@ -52,9 +52,10 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   }
 
   private async getOn(outletIndex: number): Promise<CharacteristicValue> {
+    const deviceFunctionInstance = `outlet-${outletIndex + 1}`;
     this.log.debug(`Device functions before retrieval: ${JSON.stringify(this.device.functions)}`);
 
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, outletIndex);
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, deviceFunctionInstance, outletIndex);
     if (!func) {
       this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
       return false;
@@ -69,8 +70,9 @@ export class MultiOutletAccessory extends HubspaceAccessory {
   }
 
   private async setOn(value: CharacteristicValue, outletIndex: number): Promise<void> {
+    const deviceFunctionInstance = `outlet-${outletIndex + 1}`;
     this.log.debug(`${this.device.name}: Received ${value} from Homekit Power for outlet ${outletIndex + 1}`);
-    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, undefined, outletIndex);
+    const func = getDeviceFunctionDef(this.device.functions, DeviceFunction.Power, deviceFunctionInstance, outletIndex);
     if (!func) {
       this.log.error(`${this.device.name}: Power function not supported for outlet ${outletIndex + 1}.`);
       return;
