@@ -60,7 +60,7 @@ export class DeviceService {
             deviceStatus = response.data;
 
             // Save the JSON response for debugging
-            this.saveJsonResponse(deviceStatus, `device-status-${deviceId}.json`);
+            this._platform.saveDeviceFunctionResponse(deviceStatus, deviceId);
 
         } catch (ex) {
             this.handleError(<AxiosError>ex);
@@ -134,16 +134,5 @@ export class DeviceService {
         const errorMessage = isAferoError(responseData) ? responseData.error_description : error.message;
 
         this._platform.log.error('The remote service returned an error.', errorMessage);
-    }
-
-    // Function to save JSON response
-    private saveJsonResponse(data: any, filename: string) {
-        fs.writeFile(filename, JSON.stringify(data, null, 2), (err) => {
-            if (err) {
-                this._platform.log.error('Error writing file:', err);
-            } else {
-                this._platform.log.info('JSON response saved to', filename);
-            }
-        });
     }
 }
