@@ -30,6 +30,16 @@ export const DeviceFunctions: DeviceFunctionDef[] = [
   {
     functionClass: DeviceFunction.Power,
     functionInstanceName: DeviceFunction.FanPower,
+    values: [
+      {
+        name: 'On/Off',
+        deviceValues: [
+          { type: 'Boolean', key: 'power', values: [] }
+        ],
+        range: { min: 0, max: 1, step: 1 }
+      }
+    ],
+    outletIndex: 0
   },
   {
     functionClass: DeviceFunction.FanSpeed,
